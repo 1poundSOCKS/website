@@ -16,7 +16,7 @@
 </head>
   <body>
     <!--img class="imgbox" src="baildon_bank/img/scar_wall.JPG" alt="Scar Wall"-->
-    <canvas id="canvas" width=2000 height=2000></canvas>
+    <canvas id="canvas" width=1000 height=500></canvas>
     <script>
       var canvas=document.getElementById("canvas");
       var ctx=canvas.getContext("2d");
@@ -24,7 +24,7 @@
       base_image = new Image();
       base_image.src = 'baildon_bank/img/scar_wall.JPG';
       base_image.onload = function() {
-        ctx.drawImage(base_image, 0, 0);
+        ctx.drawImage(base_image, 0, 0, 1000, 500);
       }
     </script>
   </body>
