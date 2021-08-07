@@ -2,29 +2,68 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Solution Pocket</title>
+    <title>FreeTopo</title>
     <style>
       * {
-          margin: 0;
-          padding: 0;
+        margin: 0;
+        padding: 0;
       }
-      .imgbox {
-          display: grid;
-          width: 50%;
+      .topo_image {
+        align-content: center;
+      }
+      .route_list {
+        font-size: x-large;
+        font-family: 'Courier New', Courier, monospace;
       }
   </style>
 </head>
   <body>
-    <!--img class="imgbox" src="baildon_bank/img/scar_wall.JPG" alt="Scar Wall"-->
-    <canvas id="canvas" width=1000 height=500></canvas>
+    <canvas class="topo_image" id="topo_image"></canvas>
+    <ol class="route_list" id="route_list"></ol>
     <script>
-      var canvas=document.getElementById("canvas");
-      var ctx=canvas.getContext("2d");
+      window.addEventListener('resize', resizeCanvas, false);
+      resizeCanvas();
 
-      base_image = new Image();
-      base_image.src = 'baildon_bank/img/scar_wall.JPG';
-      base_image.onload = function() {
-        ctx.drawImage(base_image, 0, 0, 1000, 500);
+      function resizeCanvas() {
+        const data = JSON.parse('{\
+          "topo_image_file": "baildon_bank/img/scar_wall.JPG", \
+          "routes": [ \
+            { "name": "Scar Wall" }, \
+            { "name": "Scar" }, \
+            { "name": "The Flakes" }, \
+            { "name": "Intrepid" } \
+          ] \
+        }')
+
+        var canvas=document.getElementById("topo_image");
+        var ctx=canvas.getContext("2d");
+        base_image = new Image();
+  
+        base_image.src = data.topo_image_file;
+        base_image.onload = function() {
+          var imageWidthToHeightRatio = base_image.height / base_image.width;
+          canvas.width = window.innerWidth * 75 / 100;
+          canvas.height = canvas.width * imageWidthToHeightRatio;
+          var imageWidthToCanvasWidthRatio = canvas.width / base_image.width;
+          var imageHeightToCanvasHeightRatio = canvas.height / base_image.height;
+          ctx.width = canvas.width;
+          ctx.height = canvas.height;
+          ctx.drawImage(base_image, 0, 0, ctx.width, ctx.height);
+          ctx.strokeStyle = 'red';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(350 * imageWidthToCanvasWidthRatio, 700 * imageHeightToCanvasHeightRatio);
+          ctx.lineTo(350 * imageWidthToCanvasWidthRatio, 200 * imageHeightToCanvasHeightRatio);
+          ctx.stroke();
+        }
+
+        var routeList=document.getElementById("route_list");
+
+        data.routes.forEach(element => {
+          var entry = document.createElement('li');
+          entry.appendChild(document.createTextNode(element.name));
+          routeList.appendChild(entry);
+        });
       }
     </script>
   </body>
