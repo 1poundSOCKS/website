@@ -1,0 +1,21 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+table, th, td {
+ border: 1px solid black;
+}
+table {
+  border-collapse: collapse;
+  width: 75%;
+  font-size: x-large;
+  font-family: 'Courier New', Courier, monospace;
+}
+th {
+  text-align: left;
+  background-color: brown;
+  color: white;
+}
+.topo_image {
+  align-content: center;
+}
