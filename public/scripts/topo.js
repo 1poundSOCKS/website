@@ -1,10 +1,10 @@
 const baildonBankData = '{\
     "topo_image_file": "baildon_bank/img/scar_wall.JPG", \
     "routes": [ \
-      { "name": "Scar Wall", "grade": "E5 6b", "start_x": 1500, "start_y": 2800, "end_x": 1450, "end_y": 500 }, \
-      { "name": "Scar", "grade": "E2 5b", "start_x": 2000, "start_y": 2800, "end_x": 2300, "end_y": 450 }, \
-      { "name": "The Flakes", "grade": "E3 5c", "start_x": 2600, "start_y": 2800, "end_x": 2600, "end_y": 460 }, \
-      { "name": "Intrepid", "grade": "E6 6a", "start_x": 3000, "start_y": 2800, "end_x": 3000, "end_y": 550 } \
+      { "id": 1, "name": "Scar Wall", "grade": "E5 6b", "start_x": 1500, "start_y": 2800, "end_x": 1450, "end_y": 500 }, \
+      { "id": 2, "name": "Scar", "grade": "E2 5b", "start_x": 2000, "start_y": 2800, "end_x": 2300, "end_y": 450 }, \
+      { "id": 3, "name": "The Flakes", "grade": "E3 5c", "start_x": 2600, "start_y": 2800, "end_x": 2600, "end_y": 460 }, \
+      { "id": 4, "name": "Intrepid", "grade": "E6 6a", "start_x": 3000, "start_y": 2800, "end_x": 3000, "end_y": 550 } \
     ] \
   }'
 
@@ -16,15 +16,18 @@ var routeTable=document.getElementById("route_table");
 const data = JSON.parse(baildonBankData)
 
 data.routes.forEach(element => {
-    var name = document.createElement('td');
-    name.appendChild(document.createTextNode(element.name));
-    var grade = document.createElement('td');
-    grade.appendChild(document.createTextNode(element.grade));
-    var row = document.createElement('tr');
-    row.appendChild(name);
-    row.appendChild(grade);
-    routeTable.appendChild(row);
-    });
+  var id = document.createElement('td');
+  id.appendChild(document.createTextNode(element.id));
+  var name = document.createElement('td');
+  name.appendChild(document.createTextNode(element.name));
+  var grade = document.createElement('td');
+  grade.appendChild(document.createTextNode(element.grade));
+  var row = document.createElement('tr');
+  row.appendChild(id);
+  row.appendChild(name);
+  row.appendChild(grade);
+  routeTable.appendChild(row);
+  });
 
 function resizeCanvas() {
     const data = JSON.parse(baildonBankData)
@@ -46,15 +49,24 @@ function resizeCanvas() {
         ctx.strokeStyle = 'white';
         ctx.lineWidth = 2;
         data.routes.forEach(element => {
-        var startX = element.start_x;
-        var startY = element.start_y;
-        var endX = element.end_x;
-        var endY = element.end_y;
+        var id = element.id;
+        var startX = element.start_x * imageWidthToCanvasWidthRatio;
+        var startY = element.start_y * imageHeightToCanvasHeightRatio;
+        var endX = element.end_x * imageWidthToCanvasWidthRatio;
+        var endY = element.end_y * imageHeightToCanvasHeightRatio;
         ctx.beginPath();
         ctx.setLineDash([10, 15]);
-        ctx.moveTo(startX * imageWidthToCanvasWidthRatio, startY * imageHeightToCanvasHeightRatio);
-        ctx.lineTo(endX * imageWidthToCanvasWidthRatio, endY * imageHeightToCanvasHeightRatio);
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
         ctx.stroke();
+        ctx.font = '24px serif';
+        var textMetrics = ctx.measureText("1");
+        var halfTextWidth = textMetrics.width / 2;
+        var textHeight = (textMetrics.fontBoundingBoxAscent);
+        ctx.fillText(id, startX - halfTextWidth, startY + textHeight)
+        //ctx.beginPath();
+        //ctx.rect(20, 20, 150, 100);
+        //ctx.stroke();
         });
     }
 }

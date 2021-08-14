@@ -1,12 +1,15 @@
 var express = require('express');
 const path = require('path');
-const fs = require('fs-extra')
+const fs = require('fs-extra');
 
 var app = express();
 
 app.use(express.static(path.join(__dirname, "/public")));
 
 app.get('/', function(req, res) {
+    var jsonData = fs.readFileSync('public/baildon_bank/data.json');
+    data = JSON.parse(jsonData);
+
     res.write('\
         <html>\
         <head>\
@@ -15,19 +18,20 @@ app.get('/', function(req, res) {
         <link rel="stylesheet" href="stylesheets/default.css">\
         </head>\
         <body>\
+        <div>\
         <canvas class="topo_image" id="topo_image"></canvas>\
         <table>\
             <thead>\
             <tr>\
-                <th>Name</th>\
-                <th>Grade</th>\
+            <th>Route</th>\
+            <th>Name</th>\
+            <th>Grade</th>\
             </tr>\
             </thead>\
             <tbody id="route_table"></tbody>\
         </table>\
         <script src="scripts/topo.js"></script>\
-        <script>\
-        </script>\
+        </div>\
         </body>\
     </html>');
   
