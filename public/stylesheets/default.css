@@ -8,19 +8,26 @@ div {
   margin-left: auto;
 }
 table, th, td {
- border: 1px solid black;
+ border: 2px solid black;
 }
 table {
   border-collapse: collapse;
   width: 100%;
   font-size: x-large;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 th {
   text-align: left;
-  background-color: brown;
+  background-color: black;
   color: white;
 }
 .topo_image {
   align-content: center;
+}
+.header {
+  width:100%;
+  color:white;
+  background-color:black;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-size: xx-large;
 }

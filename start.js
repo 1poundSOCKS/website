@@ -18,9 +18,10 @@ app.get('/', function(req, res) {
         <link rel="stylesheet" href="stylesheets/default.css">\
         </head>\
         <body>\
-        <div>\
+        <div class="header">FreeTopo</div>\
+        <div style="margin-top:20px;">\
         <canvas class="topo_image" id="topo_image"></canvas>\
-        <table>\
+        <table style="margin-top:20px;">\
             <thead>\
             <tr>\
             <th>Route</th>\

@@ -59,8 +59,8 @@ function resizeCanvas() {
         ctx.moveTo(startX, startY);
         ctx.lineTo(endX, endY);
         ctx.stroke();
-        ctx.font = '24px serif';
-        var textMetrics = ctx.measureText("1");
+        ctx.font = '24px Verdana';
+        var textMetrics = ctx.measureText(id);
         var halfTextWidth = textMetrics.width / 2;
         var textHeight = (textMetrics.fontBoundingBoxAscent);
         ctx.fillText(id, startX - halfTextWidth, startY + textHeight)
