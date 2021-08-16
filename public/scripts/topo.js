@@ -15,8 +15,6 @@ function drawTopo(data) {
 }
 
 function drawTopoImage(data) {
-  //base_image = new Image();
-
   base_image.src = data.topo_image_file;
   base_image.onload = function() {
     resizeTopoImage();
@@ -55,21 +53,35 @@ function resizeTopoImage() {
   ctx.drawImage(base_image, 0, 0, ctx.width, ctx.height);
   ctx.strokeStyle = 'white';
   ctx.lineWidth = 2;
+
   data.routes.forEach(element => {
     var id = element.id;
-    var startX = element.start_x * imageWidthToCanvasWidthRatio;
-    var startY = element.start_y * imageHeightToCanvasHeightRatio;
-    var endX = element.end_x * imageWidthToCanvasWidthRatio;
-    var endY = element.end_y * imageHeightToCanvasHeightRatio;
-    ctx.beginPath();
-    ctx.setLineDash([10, 15]);
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(endX, endY);
-    ctx.stroke();
+    var startX = element.points[0].x * imageWidthToCanvasWidthRatio;
+    var startY = element.points[0].y * imageHeightToCanvasHeightRatio;
+
     ctx.font = '24px Verdana';
     var textMetrics = ctx.measureText(id);
     var halfTextWidth = textMetrics.width / 2;
     var textHeight = (textMetrics.fontBoundingBoxAscent);
     ctx.fillText(id, startX - halfTextWidth, startY + textHeight);
+
+    for (let iStart = 0; iStart < element.points.length; iStart++) {
+
+      var startPoint = element.points[iStart];
+      var endPoint = element.points[iStart+1];
+      
+      if( startPoint != undefined && endPoint != undefined ) {
+        var startX = startPoint.x * imageWidthToCanvasWidthRatio;
+        var startY = startPoint.y * imageHeightToCanvasHeightRatio;
+        var endX = endPoint.x * imageWidthToCanvasWidthRatio;
+        var endY = endPoint.y * imageHeightToCanvasHeightRatio;
+
+        ctx.beginPath();
+        ctx.setLineDash([10, 15]);
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
+    }
   });
 }
