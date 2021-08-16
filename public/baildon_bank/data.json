@@ -1,10 +1,9 @@
 {
-    "topo_image_file": "baildon_bank/img/scar_wall.JPG",
-    "routes": [
-      { "name": "Scar Wall", "grade": "E5 6b", "start_x": 1500, "start_y": 2800, "end_x": 1450, "end_y": 500 },
-      { "name": "Scar", "grade": "E2 5b", "start_x": 2000, "start_y": 2800, "end_x": 2300, "end_y": 450 },
-      { "name": "The Flakes", "grade": "E3 5c", "start_x": 2600, "start_y": 2800, "end_x": 2600, "end_y": 460 },
-      { "name": "Intrepid", "grade": "E6 6a", "start_x": 3000, "start_y": 2800, "end_x": 3000, "end_y": 550 }
-    ]
-  }
-  
+  "topo_image_file": "baildon_bank/img/scar_wall.JPG", 
+  "routes": [ 
+    { "id": 1, "name": "Scar Wall", "grade": "E5 6b", "start_x": 1500, "start_y": 2800, "end_x": 1450, "end_y": 500 }, 
+    { "id": 2, "name": "Scar", "grade": "E2 5b", "start_x": 2000, "start_y": 2800, "end_x": 2300, "end_y": 450 }, 
+    { "id": 3, "name": "The Flakes", "grade": "E3 5c", "start_x": 2600, "start_y": 2800, "end_x": 2600, "end_y": 460 }, 
+    { "id": 4, "name": "Intrepid", "grade": "E6 6a", "start_x": 3000, "start_y": 2800, "end_x": 3000, "end_y": 550 } 
+  ] 
+}

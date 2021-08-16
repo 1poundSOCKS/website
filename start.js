@@ -7,9 +7,6 @@ var app = express();
 app.use(express.static(path.join(__dirname, "/public")));
 
 app.get('/', function(req, res) {
-    var jsonData = fs.readFileSync('public/baildon_bank/data.json');
-    data = JSON.parse(jsonData);
-
     res.write('\
         <html>\
         <head>\
@@ -18,7 +15,7 @@ app.get('/', function(req, res) {
         <link rel="stylesheet" href="stylesheets/default.css">\
         </head>\
         <body>\
-        <div class="header">FreeTopo</div>\
+        <div class="header">Baildon Bank</div>\
         <div style="margin-top:20px;">\
         <canvas class="topo_image" id="topo_image"></canvas>\
         <table style="margin-top:20px;">\
