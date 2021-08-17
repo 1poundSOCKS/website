@@ -1,7 +1,7 @@
 var topoData;
 var base_image = new Image();
 
-fetch('http://localhost:8080/data.json')
+fetch('/data.json')
   .then(response => response.json())
   .then(data => {
     topoData = data;
@@ -40,7 +40,6 @@ function drawRouteTable(data) {
 }
 
 function resizeTopoImage() {
-  var data = topoData;
   var canvas=document.getElementById("topo_image");
   var ctx=canvas.getContext("2d");
   var imageWidthToHeightRatio = base_image.height / base_image.width;
@@ -54,7 +53,7 @@ function resizeTopoImage() {
   ctx.strokeStyle = 'white';
   ctx.lineWidth = 2;
 
-  data.routes.forEach(element => {
+  topoData.routes.forEach(element => {
     var id = element.id;
     var startX = element.points[0].x * imageWidthToCanvasWidthRatio;
     var startY = element.points[0].y * imageHeightToCanvasHeightRatio;
