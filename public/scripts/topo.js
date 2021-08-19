@@ -1,7 +1,7 @@
 var topoData;
 var base_image = new Image();
 
-fetch('/data.json')
+fetch('/data?topo=1')
   .then(response => response.json())
   .then(data => {
     topoData = data;

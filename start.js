@@ -36,8 +36,11 @@ app.get('/', function(req, res) {
   res.end();
 });
 
-app.get('/data.json', function(req, res) {
-    res.sendFile('./public/baildon_bank/data.json', { root: __dirname });
+app.get('/data', function(req, res) {
+    if( req.query.topo.length != undefined && req.query.topo.length > 0 )
+        res.sendFile('./public/baildon_bank/topo_data/' + req.query.topo + '.json', { root: __dirname });
+    else
+        res.end();
 });
 
 app.listen(8080);
