@@ -16,6 +16,13 @@ table {
   font-size: x-large;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
+button {
+  width: 50%;
+  background-color: black;
+  color: white;
+  font-size: large;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
 th {
   text-align: left;
   background-color: black;

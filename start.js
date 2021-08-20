@@ -18,6 +18,10 @@ app.get('/', function(req, res) {
         <div class="header">Baildon Bank</div>\
         <div style="margin-top:20px;">\
         <canvas class="topo_image" id="topo_image"></canvas>\
+        <div>\
+        <button type="button" id="prev_topo">Previous</button>\
+        <button type="button" id="next_topo">Next</button>\
+        </div>\
         <table style="margin-top:20px;">\
             <thead>\
             <tr>\
@@ -33,12 +37,21 @@ app.get('/', function(req, res) {
         </body>\
     </html>');
   
-  res.end();
+    //res.sendFile(path.join(__dirname, '/index.html'));
+    res.end();
 });
 
-app.get('/data', function(req, res) {
-    if( req.query.topo.length != undefined && req.query.topo.length > 0 )
-        res.sendFile('./public/baildon_bank/topo_data/' + req.query.topo + '.json', { root: __dirname });
+app.get('/guide_data', function(req, res) {
+    if( req.query.guidename != undefined && req.query.guidename.length > 0 )
+        res.sendFile('./public/guide_data/' + req.query.guidename + '.json', { root: __dirname });
+    else
+        res.end();
+});
+
+app.get('/topo_data', function(req, res) {
+    if( req.query.guidename != undefined && req.query.guidename.length > 0 &&
+        req.query.topoid.length != undefined && req.query.topoid.length > 0 )
+        res.sendFile('./public/topo_data/' + req.query.guidename + '/' + req.query.topoid + '.json', { root: __dirname });
     else
         res.end();
 });

@@ -1,30 +1,68 @@
+var guideData;
 var topoData;
 var base_image = new Image();
+var guideName = 'baildon_bank';
+var topoIndex = 0;
 
-fetch('/data?topo=1')
-  .then(response => response.json())
-  .then(data => {
-    topoData = data;
-    drawTopo(data);
+var nextTopoButton = document.getElementById("next_topo");
+var prevTopoButton = document.getElementById("prev_topo");
+
+fetch('/guide_data?guidename=' + guideName)
+.then(response => response.json())
+.then(data => {
+  guideData = data;
+  fetchTopoData();
+  refreshControls();
+});
+
+nextTopoButton.onclick = function(event) {
+  topoIndex++;
+  fetchTopoData();
+  refreshControls();
+}
+
+prevTopoButton.onclick = function(event) {
+  topoIndex--;
+  fetchTopoData();
+  refreshControls();
+}
+
+function refreshControls() {
+  if( guideData.topos[topoIndex + 1] == undefined ) nextTopoButton.disabled = true;
+  else nextTopoButton.disabled = false;
+
+  if( guideData.topos[topoIndex - 1] == undefined ) prevTopoButton.disabled = true;
+  else prevTopoButton.disabled = false;
+}
+
+function fetchTopoData() {
+  topoId = guideData.topos[topoIndex];
+
+  fetch('/topo_data?guidename=' + guideName + '&topoid=' + topoId)
+    .then(response => response.json())
+    .then(data => {
+      topoData = data;
+      drawTopo();
   });
+}
 
-function drawTopo(data) {
-  drawTopoImage(data);
-  drawRouteTable(data);
+function drawTopo() {
+  drawTopoImage();
+  drawRouteTable();
   window.addEventListener('resize', resizeTopoImage, false);
 }
 
-function drawTopoImage(data) {
-  base_image.src = data.topo_image_file;
+function drawTopoImage() {
+  base_image.src = 'topo_data/' + guideName + '/' + topoData.topo_image_file;
   base_image.onload = function() {
     resizeTopoImage();
   }
 }
 
-function drawRouteTable(data) {
+function drawRouteTable() {
   var routeTable=document.getElementById("route_table");
-
-  data.routes.forEach(element => {
+  routeTable.innerHTML = '';
+  topoData.routes.forEach(element => {
     var id = document.createElement('td');
     id.appendChild(document.createTextNode(element.id));
     var name = document.createElement('td');
