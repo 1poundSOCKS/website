@@ -1,30 +1,66 @@
+//
+// topo page load
+//
+
 var guideData;
 var topoData;
 var base_image = new Image();
 var guideName = 'baildon_bank';
 var topoIndex = 0;
 
-var nextTopoButton = document.getElementById("next_topo");
-var prevTopoButton = document.getElementById("prev_topo");
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+const topo = urlParams.get('topo');
 
-fetch('/guide_data?guidename=' + guideName)
-.then(response => response.json())
-.then(data => {
-  guideData = data;
-  fetchTopoData();
-  refreshControls();
-});
-
-nextTopoButton.onclick = function(event) {
-  topoIndex++;
-  fetchTopoData();
-  refreshControls();
+if( topo == null ) {
+  location.href = '/?topo=0';
+  window.reload();
+}
+else {
+  displayTopo();
+  addMouseSupport();
 }
 
-prevTopoButton.onclick = function(event) {
-  topoIndex--;
-  fetchTopoData();
-  refreshControls();
+//
+// functions
+//
+
+function displayTopo() {
+  topoIndex = topo;
+
+  var nextTopoButton = document.getElementById("next_topo");
+  var prevTopoButton = document.getElementById("prev_topo");
+
+  fetch('/guide_data?guidename=' + guideName)
+  .then(response => response.json())
+  .then(data => {
+    guideData = data;
+    fetchTopoData();
+    refreshControls();
+  });
+
+  nextTopoButton.onclick = function(event) {
+    topoIndex++;
+    location.href = '/?topo=' + topoIndex;
+    window.reload();
+      //fetchTopoData();
+    //refreshControls();
+  }
+
+  prevTopoButton.onclick = function(event) {
+    topoIndex--;
+    location.href = '/?topo=' + topoIndex;
+    window.reload();
+    //fetchTopoData();
+    //refreshControls();
+  }
+}
+
+function addMouseSupport() {
+  let topoImage = document.getElementById("topo_image");
+  topoImage.onmouseover = function( event ) {
+    
+  }
 }
 
 function refreshControls() {
@@ -48,6 +84,7 @@ function fetchTopoData() {
 
 function drawTopo() {
   drawTopoImage();
+  drawTopoLines();
   drawRouteTable();
   window.addEventListener('resize', resizeTopoImage, false);
 }
@@ -88,6 +125,7 @@ function resizeTopoImage() {
   ctx.width = canvas.width;
   ctx.height = canvas.height;
   ctx.drawImage(base_image, 0, 0, ctx.width, ctx.height);
+
   ctx.strokeStyle = 'white';
   ctx.lineWidth = 2;
 
@@ -117,7 +155,26 @@ function resizeTopoImage() {
         ctx.setLineDash([10, 15]);
         ctx.moveTo(startX, startY);
         ctx.lineTo(endX, endY);
+        ctx.strokeStyle = '#FFFFFF';
         ctx.stroke();
+
+        ctx.beginPath();
+        ctx.setLineDash([]);
+        ctx.arc(startX, startY, 5, 0, 2 * Math.PI, false);
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "#000000";
+        ctx.fill();
+      }
+
+      if( startPoint != undefined && endPoint == undefined ) {
+        var startX = startPoint.x * imageWidthToCanvasWidthRatio;
+        var startY = startPoint.y * imageHeightToCanvasHeightRatio;
+        ctx.beginPath();
+        ctx.setLineDash([]);
+        ctx.arc(startX, startY, 5, 0, 2 * Math.PI, false);
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "#000000";
+        ctx.fill();
       }
     }
   });
