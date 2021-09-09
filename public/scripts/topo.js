@@ -18,8 +18,9 @@ if( topo == null ) {
   window.reload();
 }
 else {
+  let canvas = document.getElementById("topo_image");
   displayTopo();
-  addMouseSupport();
+  addMouseSupport(base_image, canvas);
 }
 
 //
@@ -53,12 +54,20 @@ function displayTopo() {
   }
 }
 
-function addMouseSupport() {
-  let topoImage = document.getElementById("topo_image");
-  topoImage.onmousemove = function( event ) {
+function addMouseSupport(image, canvas) {
+  canvas.onmousemove = function( event ) {
+    var ctx=canvas.getContext("2d");
+    const mousePos = getElementMousePos(canvas, event);
+    const mousePosOnImage = getImagePosFromCanvasPos(image, canvas, mousePos);
+    const closestPoint = getClosestPoint(mousePosOnImage, topoData);
+    const highlightPoint = getCanvasPosFromImagePos(image, canvas, closestPoint);
+    ctx.beginPath();
+    ctx.setLineDash([]);
+    ctx.arc(highlightPoint.x, highlightPoint.y, 5, 0, 2 * Math.PI, false);
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "#FF0000";
+    ctx.fill();
     if( mouseDownOnTopoImage == true ) {
-      var ctx=topoImage.getContext("2d");
-      const mousePos = getElementMousePos(topoImage, event);
       ctx.beginPath();
       ctx.setLineDash([]);
       ctx.arc(mousePos.x, mousePos.y, 5, 0, 2 * Math.PI, false);
@@ -68,11 +77,11 @@ function addMouseSupport() {
     }
   }
 
-  topoImage.onmousedown = function( event ) {
+  canvas.onmousedown = function( event ) {
     mouseDownOnTopoImage = true;
   }
 
-  topoImage.onmouseup = function( event ) {
+  canvas.onmouseup = function( event ) {
     mouseDownOnTopoImage = false;
   }
 }
@@ -80,6 +89,21 @@ function addMouseSupport() {
 function getElementMousePos(element, event) {
   var rect = element.getBoundingClientRect();
   return {x: event.clientX - rect.left, y: event.clientY - rect.top}
+}
+
+function getClosestPoint(mousePos, topoData) {
+  var closestPoint = topoData.routes[0].points[0];
+  var closestPointDistance = Number.MAX_VALUE;
+  topoData.routes.forEach( route => {
+    route.points.forEach( point => {
+      var distance = Math.sqrt( Math.pow((mousePos.x-point.x), 2) + Math.pow((mousePos.y-point.y), 2) );
+      if( distance < closestPointDistance ) {
+        closestPoint = point;
+        closestPointDistance = distance;
+      }
+    });
+  });
+  return closestPoint;
 }
 
 function refreshControls() {
@@ -151,7 +175,7 @@ function redrawTopoImage(image, canvas) {
 
   topoData.routes.forEach(element => {
     var id = element.id;
-    var startPos = getImagePosFromCanvasPos(image, canvas, element.points[0]);
+    var startPos = getCanvasPosFromImagePos(image, canvas, element.points[0]);
 
     ctx.font = '24px Verdana';
     var textMetrics = ctx.measureText(id);
@@ -159,45 +183,55 @@ function redrawTopoImage(image, canvas) {
     var textHeight = (textMetrics.fontBoundingBoxAscent);
     ctx.fillText(id, startPos.x - halfTextWidth, startPos.y + textHeight);
 
-    for (let iStart = 0; iStart < element.points.length; iStart++) {
+    var canvasPosData = convertImagePosDataToCanvasPosData(image, canvas, element.points);
+    var lineData = createLineDataFromPointData(canvasPosData);
 
-      var startPoint = element.points[iStart];
-      var endPoint = element.points[iStart+1];
-      
-      if( startPoint != undefined && endPoint != undefined ) {
-        var startPos = getImagePosFromCanvasPos(image, canvas, startPoint);
-        var endPos = getImagePosFromCanvasPos(image, canvas, endPoint);
+    lineData.forEach(element => {
+      ctx.beginPath();
+      ctx.setLineDash([10, 15]);
+      ctx.moveTo(element.start.x, element.start.y);
+      ctx.lineTo(element.end.x, element.end.y);
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.stroke();
+    });
 
-        ctx.beginPath();
-        ctx.setLineDash([10, 15]);
-        ctx.moveTo(startPos.x, startPos.y);
-        ctx.lineTo(endPos.x, endPos.y);
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.setLineDash([]);
-        ctx.arc(startPos.x, startPos.y, 5, 0, 2 * Math.PI, false);
-        ctx.lineWidth = 1;
-        ctx.fillStyle = "#000000";
-        ctx.fill();
-      }
-
-      if( startPoint != undefined && endPoint == undefined ) {
-        var startPos = getImagePosFromCanvasPos(image, canvas, startPoint);
-        ctx.beginPath();
-        ctx.setLineDash([]);
-        ctx.arc(startPos.x, startPos.y, 5, 0, 2 * Math.PI, false);
-        ctx.lineWidth = 1;
-        ctx.fillStyle = "#000000";
-        ctx.fill();
-      }
-    }
+    canvasPosData.forEach(element => {
+      ctx.beginPath();
+      ctx.setLineDash([]);
+      ctx.arc(element.x, element.y, 5, 0, 2 * Math.PI, false);
+      ctx.lineWidth = 1;
+      ctx.fillStyle = "#000000";
+      ctx.fill();
+    });
   });
 }
 
+function convertImagePosDataToCanvasPosData(image, canvas, imagePosData) {
+  var canvasPosData = [];
+  for (let iStart = 0; iStart < imagePosData.length; iStart++) {
+    var canvasPos = getCanvasPosFromImagePos(image, canvas, imagePosData[iStart]);
+    canvasPosData.push(canvasPos);
+  }
+
+  return canvasPosData;
+}
+
+function getCanvasPosFromImagePos(image, canvas, pos) {
+  var widthRatio = canvas.width / image.width;
+  var heightRatio = canvas.height / image.height;
+  return {x: pos.x * widthRatio, y: pos.y * heightRatio};
+}
+
 function getImagePosFromCanvasPos(image, canvas, pos) {
-  var imageWidthToCanvasWidthRatio = canvas.width / image.width;
-  var imageHeightToCanvasHeightRatio = canvas.height / image.height;
-  return {x: pos.x * imageWidthToCanvasWidthRatio, y: pos.y * imageHeightToCanvasHeightRatio};
+  var widthRatio = image.width / canvas.width;
+  var heightRatio = image.height / canvas.height;
+  return {x: pos.x * widthRatio, y: pos.y * heightRatio};
+}
+
+function createLineDataFromPointData(pointData) {
+  var lineData = [];
+  for (let iStart = 0; iStart < pointData.length - 1; iStart++) {
+      lineData.push({start: pointData[iStart], end: pointData[iStart+1]});
+  }
+  return lineData;
 }
