@@ -76,7 +76,7 @@ function addMouseSupport(image, canvas) {
     }
     else {
       if( closestTopoPoint.distance < 50 ) {
-        highlightedTopoPoint = closestTopoPoint;
+        highlightedTopoPoint = closestTopoPoint.index;
         drawTopoImage(image, canvas);
         drawTopoRoutes(image, canvas);
       }
@@ -131,8 +131,8 @@ function calculateMouseOffset(startPos, endPos) {
 
 function moveTopoPoints(topoData, topoPoints, offset) {
   topoPoints.forEach( point => {
-    topoData.routes[point.routeIndex].points[point.pointIndex].x += offset.x;
-    topoData.routes[point.routeIndex].points[point.pointIndex].y += offset.y;
+    topoData.points[point].x += offset.x;
+    topoData.points[point].y += offset.y;
   });
 }
 
@@ -144,14 +144,14 @@ function addSelectedTopoPoint(selectedTopoPoints, highlightedTopoPoint) {
 
 function removeSelectedTopoPoint(selectedTopoPoints, topoPoint) {
   return selectedTopoPoints.filter(point => {
-    return !(point.routeIndex == topoPoint.routeIndex && point.pointIndex == topoPoint.pointIndex)
+    return !(point == topoPoint);
   });
 }
 
 function containsTopoPoint(selectedTopoPoints, highlightedTopoPoint) {
   var found = false;
   selectedTopoPoints.forEach( point => {
-    if( highlightedTopoPoint.routeIndex == point.routeIndex && highlightedTopoPoint.pointIndex == point.pointIndex ) {
+    if( highlightedTopoPoint == point ) {
       found = true;
     }
   });
@@ -164,14 +164,12 @@ function getElementMousePos(element, event) {
 }
 
 function getClosestTopoPoint(imagePos, topoData) {
-  var closestPoint = { routeIndex: 0, pointIndex: 0, distance: Number.MAX_VALUE };
-  topoData.routes.forEach( (route, routeIndex) => {
-    route.points.forEach( (point, pointIndex) => {
-      var distance = Math.sqrt( Math.pow((imagePos.x-point.x), 2) + Math.pow((imagePos.y-point.y), 2) );
-      if( distance < closestPoint.distance ) {
-        closestPoint = { routeIndex: routeIndex, pointIndex: pointIndex, distance: distance };
-      }
-    });
+  var closestPoint = { index: -1, distance: Number.MAX_VALUE };
+  topoData.points.forEach( (point, index) => {
+    var distance = Math.sqrt( Math.pow((imagePos.x-point.x), 2) + Math.pow((imagePos.y-point.y), 2) );
+    if( distance < closestPoint.distance ) {
+      closestPoint = { index: index, distance: distance };
+    }
   });
   return closestPoint;
 }
@@ -246,49 +244,33 @@ function drawTopoRoutes(image, canvas) {
   var ctx=canvas.getContext("2d");
   ctx.strokeStyle = 'white';
 
-  topoData.routes.forEach(element => {
-    var id = element.id;
-    var startPos = getCanvasPosFromImagePos(image, canvas, element.points[0]);
+  var pointsOnCanvas = convertImagePosDataToCanvasPosData(image, canvas, topoData.points);
 
-    ctx.font = '24px Verdana';
-    ctx.lineWidth = 1;
-    var textMetrics = ctx.measureText(id);
-    var halfTextWidth = textMetrics.width / 2;
-    var textHeight = (textMetrics.fontBoundingBoxAscent);
-    ctx.fillStyle = "#000000";
-    ctx.fillText(id, startPos.x - halfTextWidth, startPos.y + textHeight);
-
-    var canvasPosData = convertImagePosDataToCanvasPosData(image, canvas, element.points);
-    var lineData = createLineDataFromPointData(canvasPosData);
-
+  topoData.lines.forEach(line => {
+    ctx.beginPath();
+    ctx.setLineDash([10, 15]);
+    ctx.moveTo(pointsOnCanvas[line.start].x, pointsOnCanvas[line.start].y);
+    ctx.lineTo(pointsOnCanvas[line.end].x, pointsOnCanvas[line.end].y);
     ctx.lineWidth = 2;
-
-    lineData.forEach(element => {
-      ctx.beginPath();
-      ctx.setLineDash([10, 15]);
-      ctx.moveTo(element.start.x, element.start.y);
-      ctx.lineTo(element.end.x, element.end.y);
-      ctx.strokeStyle = '#FFFFFF';
-      ctx.stroke();
-    });
-
-    canvasPosData.forEach(element => {
-      ctx.beginPath();
-      ctx.setLineDash([]);
-      ctx.arc(element.x, element.y, 5, 0, 2 * Math.PI, false);
-      ctx.lineWidth = 1;
-      ctx.fillStyle = "#000000";
-      ctx.fill();
-    });
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.stroke();
   });
-  
+
+  pointsOnCanvas.forEach( point => {
+    ctx.beginPath();
+    ctx.setLineDash([]);
+    ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI, false);
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "#000000";
+    ctx.fill();
+  });
+
   if( selectedTopoPoints != undefined && selectedTopoPoints != null ) {
     selectedTopoPoints.forEach( point => {
-      const canvasPosData = convertImagePosDataToCanvasPosData(image, canvas, topoData.routes[point.routeIndex].points);
-      const selectedTopoPos = canvasPosData[point.pointIndex];
+      const canvasPos = getCanvasPosFromImagePos(image, canvas, topoData.points[point]);
       ctx.beginPath();
       ctx.setLineDash([]);
-      ctx.arc(selectedTopoPos.x, selectedTopoPos.y, 5, 0, 2 * Math.PI, false);
+      ctx.arc(canvasPos.x, canvasPos.y, 5, 0, 2 * Math.PI, false);
       ctx.lineWidth = 1;
       ctx.fillStyle = "#00FF00";
       ctx.fill();
@@ -296,11 +278,10 @@ function drawTopoRoutes(image, canvas) {
   }
 
   if( highlightedTopoPoint != undefined && highlightedTopoPoint != null ) {
-    const canvasPosData = convertImagePosDataToCanvasPosData(image, canvas, topoData.routes[highlightedTopoPoint.routeIndex].points);
-    const highlightedTopoPos = canvasPosData[highlightedTopoPoint.pointIndex];
+    const canvasPos = getCanvasPosFromImagePos(image, canvas, topoData.points[highlightedTopoPoint]);
     ctx.beginPath();
     ctx.setLineDash([]);
-    ctx.arc(highlightedTopoPos.x, highlightedTopoPos.y, 7, 0, 2 * Math.PI, false);
+    ctx.arc(canvasPos.x, canvasPos.y, 7, 0, 2 * Math.PI, false);
     ctx.lineWidth = 3;
     ctx.strokeStyle = "#FF0000";
     ctx.stroke();
