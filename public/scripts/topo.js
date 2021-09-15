@@ -12,6 +12,7 @@ var closestTopoPoint;
 var highlightedTopoPoint;
 var selectedTopoPoints = [];
 var mouseDownPos;
+var mouseHasDragged = false;
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
@@ -67,17 +68,21 @@ function addMouseSupport(image, canvas) {
     if( mouseDownOnTopoImage ) {
       const imageMouseDownPos = getImagePosFromCanvasPos(image, canvas, mouseDownPos);
       const mouseOffset = calculateMouseOffset(imageMouseDownPos, imageMousePos);
-      applyMouseOffset(topoData, selectedTopoPoints, mouseOffset);
+      const bounds = {minX:0, minY: 0, maxX:image.naturalWidth, maxY: image.naturalHeight };
+      moveTopoPoints(topoData, selectedTopoPoints, mouseOffset, bounds);
+      mouseHasDragged = true;
       drawTopoImage(image, canvas);
       drawTopoRoutes(image, canvas);
     }
     else {
       if( closestTopoPoint.distance < 50 ) {
         highlightedTopoPoint = closestTopoPoint;
+        drawTopoImage(image, canvas);
         drawTopoRoutes(image, canvas);
       }
       else {
         highlightedTopoPoint = null;
+        drawTopoImage(image, canvas);
         drawTopoRoutes(image, canvas);
       }
     }
@@ -86,16 +91,37 @@ function addMouseSupport(image, canvas) {
 
   canvas.onmousedown = function( event ) {
     mouseDownOnTopoImage = true;
-    var ctx=canvas.getContext("2d");
-    mouseDownPos = getElementMousePos(canvas, event);
-    if( highlightedTopoPoint != undefined && highlightedTopoPoint != null ) {
-      addSelectedTopoPoint(selectedTopoPoints, highlightedTopoPoint);
-      drawTopoRoutes(image, canvas);
-    }
+    mouseHasDragged = false;
   }
 
   canvas.onmouseup = function( event ) {
-    mouseDownOnTopoImage = false;    
+    mouseDownOnTopoImage = false;
+  }
+
+  canvas.onclick = function( event ) {
+    console.log("mouse clicked");
+    if( highlightedTopoPoint != undefined && highlightedTopoPoint != null ) {
+      console.log("topo point is highlighted");
+      if( containsTopoPoint(selectedTopoPoints, highlightedTopoPoint) ) {
+        console.log("already selected, so unselect");
+        selectedTopoPoints = removeSelectedTopoPoint(selectedTopoPoints, highlightedTopoPoint);
+        drawTopoImage(image, canvas);
+        drawTopoRoutes(image, canvas);
+      }
+      else {
+        console.log("NOT selected, so select");
+        addSelectedTopoPoint(selectedTopoPoints, highlightedTopoPoint);
+        drawTopoRoutes(image, canvas);
+      }
+    }
+    else {
+      console.log("topo point is NOT highlighted");
+      if( mouseHasDragged == false ) {
+        selectedTopoPoints = [];
+        drawTopoImage(image, canvas);
+        drawTopoRoutes(image, canvas);
+      }
+    }
   }
 }
 
@@ -103,26 +129,33 @@ function calculateMouseOffset(startPos, endPos) {
   return {x: endPos.x - startPos.x, y: endPos.y - startPos.y };
 }
 
-function applyMouseOffset(topoData, selectedTopoPoints, mouseOffset) {
-  selectedTopoPoints.forEach( point => {
-    topoData.routes[point.routeIndex].points[point.pointIndex].x += mouseOffset.x;
-    topoData.routes[point.routeIndex].points[point.pointIndex].y += mouseOffset.y;
+function moveTopoPoints(topoData, topoPoints, offset) {
+  topoPoints.forEach( point => {
+    topoData.routes[point.routeIndex].points[point.pointIndex].x += offset.x;
+    topoData.routes[point.routeIndex].points[point.pointIndex].y += offset.y;
   });
 }
 
 function addSelectedTopoPoint(selectedTopoPoints, highlightedTopoPoint) {
-  if( !containsTopoPoint(selectedTopoPoints, highlightedTopoPoint) ) {
+  if( containsTopoPoint(selectedTopoPoints, highlightedTopoPoint) == false ) {
     selectedTopoPoints.push(highlightedTopoPoint);
   }
 }
 
+function removeSelectedTopoPoint(selectedTopoPoints, topoPoint) {
+  return selectedTopoPoints.filter(point => {
+    return !(point.routeIndex == topoPoint.routeIndex && point.pointIndex == topoPoint.pointIndex)
+  });
+}
+
 function containsTopoPoint(selectedTopoPoints, highlightedTopoPoint) {
+  var found = false;
   selectedTopoPoints.forEach( point => {
     if( highlightedTopoPoint.routeIndex == point.routeIndex && highlightedTopoPoint.pointIndex == point.pointIndex ) {
-      return true;
+      found = true;
     }
   });
-  return false;
+  return found;
 }
 
 function getElementMousePos(element, event) {
@@ -267,10 +300,10 @@ function drawTopoRoutes(image, canvas) {
     const highlightedTopoPos = canvasPosData[highlightedTopoPoint.pointIndex];
     ctx.beginPath();
     ctx.setLineDash([]);
-    ctx.arc(highlightedTopoPos.x, highlightedTopoPos.y, 5, 0, 2 * Math.PI, false);
-    ctx.lineWidth = 1;
-    ctx.fillStyle = "#FF0000";
-    ctx.fill();
+    ctx.arc(highlightedTopoPos.x, highlightedTopoPos.y, 7, 0, 2 * Math.PI, false);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#FF0000";
+    ctx.stroke();
   }
 }
 
