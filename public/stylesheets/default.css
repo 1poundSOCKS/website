@@ -2,22 +2,22 @@
   margin: 0;
   padding: 0;
 }
-div {
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  margin-top: 20px;
+}
+/*div {
   display: table;
   margin-right: auto;
   margin-left: auto;
-}
+}*/
 table, th, td {
  border: 2px solid black;
 }
-table {
-  border-collapse: collapse;
-  width: 100%;
-  font-size: x-large;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-}
 button {
-  width: 50%;
+  width: 20%;
   background-color: black;
   color: white;
   font-size: large;
@@ -28,8 +28,9 @@ th {
   background-color: black;
   color: white;
 }
-.topo_image {
+.topo-image {
   align-content: center;
+  width: 100%;
 }
 .header {
   width:100%;
@@ -37,4 +38,25 @@ th {
   background-color:black;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   font-size: xx-large;
+}
+.route-table {
+  margin-top: 20px;
+  margin-left: 10%;
+  width: 80%;
+  border-collapse: collapse;
+  font-size: x-large;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+.edit-buttons {
+  width: 80%;
+  margin-top: 20px;
+  margin-left: 10%;
+}
+.route-checkbox-header {
+  width: 50px;
+  margin: auto;
+}
+.route-checkbox {
+  width: 50px;
+  margin: auto;
 }
