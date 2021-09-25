@@ -27,7 +27,7 @@ else {
   const canvas = document.getElementById("topo-image");
   addTopoMouseSupport(base_image, canvas);
   const routeTable = document.getElementById("route-table");
-  addRouteTableMouseSupport(routeTable);
+  addRouteTableMouseSupport(base_image, canvas, routeTable);
   const nextTopoButton = document.getElementById("next-topo");
   nextTopoButton.onclick = function(event) {
     topoIndex++;
@@ -95,7 +95,8 @@ function addTopoMouseSupport(image, canvas) {
     var ctx=canvas.getContext("2d");
     const mousePos = getElementMousePos(canvas, event);
     const imageMousePos = getImagePosFromCanvasPos(image, canvas, mousePos);
-    closestTopoPoint = getClosestTopoPoint(imageMousePos, topoData);
+    const selectedRoutes = getSelectedRoutes();
+    closestTopoPoint = getClosestTopoPoint(imageMousePos, topoData, selectedRoutes);
     if( mouseDownOnTopoImage ) {
       const imageMouseDownPos = getImagePosFromCanvasPos(image, canvas, mouseDownPos);
       const mouseOffset = calculateMouseOffset(imageMouseDownPos, imageMousePos);
@@ -155,14 +156,17 @@ function addTopoMouseSupport(image, canvas) {
     const mousePos = getElementMousePos(canvas, event);
     const imageMousePos = getImagePosFromCanvasPos(image, canvas, mousePos);
     addNewTopoPoint(topoData, imageMousePos);
-    drawTopoRoutes()
+    drawTopoRoutes(image, canvas);
   }
 }
 
-function addRouteTableMouseSupport(routeTable) {
+function addRouteTableMouseSupport(image, canvas, routeTable) {
   routeTable.onclick = function( event ) {
     console.log('table clicked');
     const selectedRoutes = getSelectedRoutes();
+    var selectedTopoPoints = [];
+    drawTopoImage(image, canvas);
+    drawTopoRoutes(image, canvas);
     console.log(selectedRoutes);
   }
 }
@@ -226,15 +230,32 @@ function getElementMousePos(element, event) {
   return {x: event.clientX - rect.left, y: event.clientY - rect.top}
 }
 
-function getClosestTopoPoint(imagePos, topoData) {
+function getClosestTopoPoint(imagePos, topoData, selectedRoutes) {
   var closestPoint = { index: -1, distance: Number.MAX_VALUE };
-  topoData.points.forEach( (point, index) => {
-    var distance = Math.sqrt( Math.pow((imagePos.x-point.x), 2) + Math.pow((imagePos.y-point.y), 2) );
-    if( distance < closestPoint.distance ) {
-      closestPoint = { index: index, distance: distance };
-    }
+  selectedRoutes.forEach( routeIndex => {
+    const points = getDistinctRoutePoints(topoData.routes[routeIndex]);
+    points.forEach( pointIndex => {
+      const point = topoData.points[pointIndex];
+      var distance = Math.sqrt( Math.pow((imagePos.x-point.x), 2) + Math.pow((imagePos.y-point.y), 2) );
+      if( distance < closestPoint.distance ) {
+        closestPoint = { index: pointIndex, distance: distance };
+      }
+     });
   });
   return closestPoint;
+}
+
+function getDistinctRoutePoints(route) {
+  var points = [];
+  route.lines.forEach( line => {
+    if( !points.includes(line.start) ) {
+      points.push(line.start);
+    }
+    if( !points.includes(line.end) ) {
+      points.push(line.end);
+    }
+  });
+  return points;
 }
 
 function drawRouteTable() {
@@ -288,51 +309,42 @@ function drawTopoRoutes(image, canvas) {
 
   const selectedRoutes = getSelectedRoutes();
 
-  selectedRoutes.forEach(routeIndex => {
-    topoData.routes[routeIndex].lines.forEach(line => {
-      ctx.beginPath();
-      ctx.setLineDash([10, 15]);
-      ctx.moveTo(pointsOnCanvas[line.start].x, pointsOnCanvas[line.start].y);
-      ctx.lineTo(pointsOnCanvas[line.end].x, pointsOnCanvas[line.end].y);
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#FFFFFF';
-      ctx.stroke();
-    });
-  });
-/*
-  topoData.routes.forEach((route, index) => {
+  topoData.routes.forEach((route, routeIndex) => {
     route.lines.forEach(line => {
       ctx.beginPath();
-      ctx.setLineDash([10, 15]);
       ctx.moveTo(pointsOnCanvas[line.start].x, pointsOnCanvas[line.start].y);
       ctx.lineTo(pointsOnCanvas[line.end].x, pointsOnCanvas[line.end].y);
       ctx.lineWidth = 2;
-      ctx.strokeStyle = '#FFFFFF';
+      if( selectedRoutes.includes(routeIndex) ) ctx.strokeStyle = '#00FF00';
+      else ctx.strokeStyle = '#FFFFFF';
       ctx.stroke();
     });
   });
-*/
-  pointsOnCanvas.forEach( point => {
-    ctx.beginPath();
-    ctx.setLineDash([]);
-    ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI, false);
-    ctx.lineWidth = 1;
-    ctx.fillStyle = "#000000";
-    ctx.fill();
-  });
 
-  if( selectedTopoPoints != undefined && selectedTopoPoints != null ) {
-    selectedTopoPoints.forEach( point => {
-      const canvasPos = getCanvasPosFromImagePos(image, canvas, topoData.points[point]);
+  topoData.routes.forEach((route, routeIndex) => {
+    route.lines.forEach(line => {
       ctx.beginPath();
-      ctx.setLineDash([]);
-      ctx.arc(canvasPos.x, canvasPos.y, 5, 0, 2 * Math.PI, false);
+      ctx.arc(pointsOnCanvas[line.start].x, pointsOnCanvas[line.start].y, 5, 0, 2 * Math.PI, false);
       ctx.lineWidth = 1;
-      ctx.fillStyle = "#00FF00";
+      if( selectedTopoPoints.includes(line.start) ) {
+        ctx.fillStyle = "#00FF00";
+      }
+      else {
+        ctx.fillStyle = "#000000";
+      }
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(pointsOnCanvas[line.end].x, pointsOnCanvas[line.end].y, 5, 0, 2 * Math.PI, false);
+      ctx.lineWidth = 1;
+      if( selectedTopoPoints.includes(line.end) ) {
+        ctx.fillStyle = "#00FF00";
+      }
+      else {
+        ctx.fillStyle = "#000000";
+      }
       ctx.fill();
     });
-  }
-
+  });
   if( highlightedTopoPoint != undefined && highlightedTopoPoint != null ) {
     const canvasPos = getCanvasPosFromImagePos(image, canvas, topoData.points[highlightedTopoPoint]);
     ctx.beginPath();
