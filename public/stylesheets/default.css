@@ -8,11 +8,6 @@
   flex-wrap: nowrap;
   margin-top: 20px;
 }
-/*div {
-  display: table;
-  margin-right: auto;
-  margin-left: auto;
-}*/
 table, th, td {
  border: 2px solid black;
 }

@@ -18,36 +18,25 @@
       "id": 1, 
       "name": "Scar Wall", 
       "grade": "E5 6b",
-      "lines": [
-        { "start": 0, "end": 1 }
-      ]
+      "points": [ 0 , 1 ]
     },
     { 
       "id": 2, 
       "name": "Scar", 
       "grade": "E2 5b",
-      "lines": [
-        { "start": 2, "end": 3 },
-        { "start": 3, "end": 4 },
-        { "start": 4, "end": 5 }
-      ]
+      "points": [ 2, 3, 4, 5 ]
     }, 
     { 
       "id": 3, 
       "name": "The Flakes", 
       "grade": "E3 5c",
-      "lines": [
-        { "start": 6, "end": 7 }
-      ]
+      "points": [ 6, 7 ]
     }, 
     { 
       "id": 4, 
       "name": "Intrepid", 
       "grade": "E6 6a",
-      "lines": [
-        { "start": 8, "end": 9 },
-        { "start": 9, "end": 10 }
-      ]
+      "points": [8, 9, 10]
     } 
   ] 
 }
