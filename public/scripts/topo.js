@@ -14,6 +14,11 @@ var selectedTopoPoints = [];
 var mouseDownPos;
 var mouseHasDragged = false;
 
+const EDIT_MODE = {
+  Create: "Create",
+  Modify: "Modify"
+}
+
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 const topo = urlParams.get('topo');
@@ -91,73 +96,101 @@ function loadTopoImage() {
 }
 
 function addTopoMouseSupport(image, canvas) {
+  
   canvas.onmousemove = function( event ) {
-    var ctx=canvas.getContext("2d");
-    const mousePos = getElementMousePos(canvas, event);
-    const imageMousePos = getImagePosFromCanvasPos(image, canvas, mousePos);
-    const selectedRoutes = getSelectedRoutes();
-    closestTopoPoint = getClosestTopoPoint(imageMousePos, topoData, selectedRoutes);
-    if( mouseDownOnTopoImage ) {
-      const imageMouseDownPos = getImagePosFromCanvasPos(image, canvas, mouseDownPos);
-      const mouseOffset = calculateMouseOffset(imageMouseDownPos, imageMousePos);
-      const bounds = {minX:0, minY: 0, maxX:image.naturalWidth, maxY: image.naturalHeight };
-      moveTopoPoints(topoData, selectedTopoPoints, mouseOffset, bounds);
-      mouseHasDragged = true;
-      drawTopoImage(image, canvas);
-      drawTopoRoutes(image, canvas);
+    const editMode = GetEditMode();
+    switch( editMode ) {
+      case EDIT_MODE.Create:
+        OnMouseMoveDuringCreate(event, image, canvas);
+        break;
+      case EDIT_MODE.Modify:
+        OnMouseMoveDuringModify(event, image, canvas);
+        break;
     }
-    else {
-      if( closestTopoPoint.distance < 50 ) {
-        highlightedTopoPoint = closestTopoPoint.index;
-        drawTopoImage(image, canvas);
-        drawTopoRoutes(image, canvas);
-      }
-      else {
-        highlightedTopoPoint = null;
-        drawTopoImage(image, canvas);
-        drawTopoRoutes(image, canvas);
-      }
-    }
-    mouseDownPos = mousePos;
   }
 
   canvas.onmousedown = function( event ) {
     mouseDownOnTopoImage = true;
     mouseHasDragged = false;
+    selectedTopoPoints = [];
+    addSelectedTopoPoint(selectedTopoPoints, highlightedTopoPoint);
   }
 
   canvas.onmouseup = function( event ) {
     mouseDownOnTopoImage = false;
+    selectedTopoPoints = [];
   }
 
   canvas.onclick = function( event ) {
-    if( highlightedTopoPoint != undefined && highlightedTopoPoint != null ) {
-      if( containsTopoPoint(selectedTopoPoints, highlightedTopoPoint) ) {
-        selectedTopoPoints = removeSelectedTopoPoint(selectedTopoPoints, highlightedTopoPoint);
-        drawTopoImage(image, canvas);
-        drawTopoRoutes(image, canvas);
-      }
-      else {
-        addSelectedTopoPoint(selectedTopoPoints, highlightedTopoPoint);
-        drawTopoRoutes(image, canvas);
-      }
-    }
-    else {
-      if( mouseHasDragged == false ) {
-        selectedTopoPoints = [];
-        drawTopoImage(image, canvas);
+    var ctx=canvas.getContext("2d");
+    const mousePos = getElementMousePos(canvas, event);
+    const imageMousePos = getImagePosFromCanvasPos(image, canvas, mousePos);
+
+    if( !mouseHasDragged ) {
+      const selectedRoutes = getSelectedRoutes();
+      const selectedRouteIndex = selectedRoutes[0];
+      if( selectedRouteIndex != undefined ) {
+        const route = topoData.routes[selectedRouteIndex];
+        if( highlightedTopoPoint == undefined || highlightedTopoPoint == null) {
+          addNewPointToRoute(topoData.points, route, imageMousePos);
+        }
+        else {
+          addExistingPointToRoute(route, highlightedTopoPoint);
+        }
         drawTopoRoutes(image, canvas);
       }
     }
   }
 
   canvas.ondblclick = function( event ) {
-    var ctx=canvas.getContext("2d");
-    const mousePos = getElementMousePos(canvas, event);
-    const imageMousePos = getImagePosFromCanvasPos(image, canvas, mousePos);
-    addNewTopoPoint(topoData, imageMousePos);
+  }
+}
+
+function addNewPointToRoute(points, route, pos) {
+  const pointCount = points.push(pos);
+  route.points.push(pointCount - 1);
+}
+
+function addExistingPointToRoute(route, imageMousePos) {
+  
+}
+
+function GetEditMode() {
+  return EDIT_MODE.Modify;
+}
+
+function OnMouseMoveDuringModify(event, image, canvas) {
+  var ctx=canvas.getContext("2d");
+  const mousePos = getElementMousePos(canvas, event);
+  const imageMousePos = getImagePosFromCanvasPos(image, canvas, mousePos);
+  const selectedRoutes = getSelectedRoutes();
+  closestTopoPoint = getClosestTopoPoint(imageMousePos, topoData, selectedRoutes);
+  if( mouseDownOnTopoImage ) {
+    const imageMouseDownPos = getImagePosFromCanvasPos(image, canvas, mouseDownPos);
+    const mouseOffset = calculateMouseOffset(imageMouseDownPos, imageMousePos);
+    const bounds = {minX:0, minY: 0, maxX:image.naturalWidth, maxY: image.naturalHeight };
+    moveTopoPoints(topoData, selectedTopoPoints, mouseOffset, bounds);
+    mouseHasDragged = true;
+    drawTopoImage(image, canvas);
     drawTopoRoutes(image, canvas);
   }
+  else {
+    if( closestTopoPoint.distance < 50 ) {
+      highlightedTopoPoint = closestTopoPoint.index;
+      drawTopoImage(image, canvas);
+      drawTopoRoutes(image, canvas);
+    }
+    else {
+      highlightedTopoPoint = null;
+      drawTopoImage(image, canvas);
+      drawTopoRoutes(image, canvas);
+    }
+  }
+  mouseDownPos = mousePos;
+}
+
+function OnMouseMoveDuringCreate(event, image, canvas) {
+
 }
 
 function addRouteTableMouseSupport(image, canvas, routeTable) {
@@ -233,7 +266,7 @@ function getElementMousePos(element, event) {
 function getClosestTopoPoint(imagePos, topoData, selectedRoutes) {
   var closestPoint = { index: -1, distance: Number.MAX_VALUE };
   selectedRoutes.forEach( routeIndex => {
-    const points = getDistinctRoutePoints(topoData.routes[routeIndex]);
+    const points = topoData.routes[routeIndex].points;
     points.forEach( pointIndex => {
       const point = topoData.points[pointIndex];
       var distance = Math.sqrt( Math.pow((imagePos.x-point.x), 2) + Math.pow((imagePos.y-point.y), 2) );
@@ -310,7 +343,8 @@ function drawTopoRoutes(image, canvas) {
   const selectedRoutes = getSelectedRoutes();
 
   topoData.routes.forEach((route, routeIndex) => {
-    route.lines.forEach(line => {
+    const lines = GetRouteLines(route);
+    lines.forEach(line => {
       ctx.beginPath();
       ctx.moveTo(pointsOnCanvas[line.start].x, pointsOnCanvas[line.start].y);
       ctx.lineTo(pointsOnCanvas[line.end].x, pointsOnCanvas[line.end].y);
@@ -322,7 +356,8 @@ function drawTopoRoutes(image, canvas) {
   });
 
   topoData.routes.forEach((route, routeIndex) => {
-    route.lines.forEach(line => {
+    const lines = GetRouteLines(route);
+    lines.forEach(line => {
       ctx.beginPath();
       ctx.arc(pointsOnCanvas[line.start].x, pointsOnCanvas[line.start].y, 5, 0, 2 * Math.PI, false);
       ctx.lineWidth = 1;
@@ -345,6 +380,7 @@ function drawTopoRoutes(image, canvas) {
       ctx.fill();
     });
   });
+
   if( highlightedTopoPoint != undefined && highlightedTopoPoint != null ) {
     const canvasPos = getCanvasPosFromImagePos(image, canvas, topoData.points[highlightedTopoPoint]);
     ctx.beginPath();
@@ -354,6 +390,16 @@ function drawTopoRoutes(image, canvas) {
     ctx.strokeStyle = "#FF0000";
     ctx.stroke();
   }
+}
+
+function GetRouteLines(route) {
+  var lines = [];
+  var previousPoint = null;
+  route.points.forEach(point => {
+    if( previousPoint != null ) lines.push({start: previousPoint, end: point});
+    previousPoint = point;
+  });
+  return lines;
 }
 
 function convertImagePosDataToCanvasPosData(image, canvas, imagePosData) {
