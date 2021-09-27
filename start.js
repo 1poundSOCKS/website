@@ -16,18 +16,14 @@ app.get('/', function(req, res) {
             </head>\
             <body>\
                 <div class="header">Baildon Bank</div>\
+                <div class="edit-buttons">\
+                    <button class="topo-command-button" type="button" id="prev-topo">Previous</button>\
+                    <button class="topo-command-button" type="button" id="next-topo">Next</button>\
+                    <button class="topo-command-button" type="button" id="reset-route">Reset route</button>\
+                    <button class="topo-command-button" type="button" id="done">Done</button>\
+                </div>\
                 <div class="flex-container">\
-                    <div style="width: 55%">\
-                        <canvas class="topo-image" id="topo-image"></canvas>\
-                    </div>\
-                    <div style="width: 10%" class="edit-buttons">\
-                        <button class="topo-command-button" type="button" id="prev-topo">Previous</button>\
-                        <button class="topo-command-button" type="button" id="next-topo">Next</button>\
-                        <button class="topo-command-button" type="button" id="reset-route">Reset route</button>\
-                        <button class="topo-command-button" type="button" id="set-route">Set route</button>\
-                        <button class="topo-command-button" type="button" id="done">Done</button>\
-                    </div>\
-                    <div style="width: 35%">\
+                    <div style="width: 40%">\
                         <table class="route-table" id="route-table">\
                             <thead>\
                                 <tr>\
@@ -39,6 +35,9 @@ app.get('/', function(req, res) {
                             </thead>\
                             <tbody id="route-table-body"></tbody>\
                         </table>\
+                    </div>\
+                    <div style="width: 60%">\
+                        <canvas class="topo-image" id="topo-image"></canvas>\
                     </div>\
                 </div>\
                 <script src="scripts/topo.js"></script>\

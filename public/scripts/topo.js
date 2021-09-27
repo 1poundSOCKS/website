@@ -13,6 +13,7 @@ var highlightedTopoPoint;
 var selectedTopoPoints = [];
 var mouseDownPos;
 var mouseHasDragged = false;
+var dragPoint = null;
 
 const EDIT_MODE = {
   Create: "Create",
@@ -112,20 +113,30 @@ function addTopoMouseSupport(image, canvas) {
   canvas.onmousedown = function( event ) {
     mouseDownOnTopoImage = true;
     mouseHasDragged = false;
-    selectedTopoPoints = [];
-    addSelectedTopoPoint(selectedTopoPoints, highlightedTopoPoint);
+    var ctx=canvas.getContext("2d");
+    const mousePos = getElementMousePos(canvas, event);
+    const imageMousePos = getImagePosFromCanvasPos(image, canvas, mousePos);
+    dragPoint = GetDragPoint(imageMousePos, topoData);
+    highlightedTopoPoint = null;
+    drawTopoImage(image, canvas);
+    drawTopoRoutes(image, canvas);
   }
 
   canvas.onmouseup = function( event ) {
     mouseDownOnTopoImage = false;
-    selectedTopoPoints = [];
+    dragPoint = null;
+    var ctx=canvas.getContext("2d");
+    const mousePos = getElementMousePos(canvas, event);
+    const imageMousePos = getImagePosFromCanvasPos(image, canvas, mousePos);
+    highlightedTopoPoint = GetDragPoint(imageMousePos, topoData);
+    drawTopoImage(image, canvas);
+    drawTopoRoutes(image, canvas);
   }
 
   canvas.onclick = function( event ) {
     var ctx=canvas.getContext("2d");
     const mousePos = getElementMousePos(canvas, event);
     const imageMousePos = getImagePosFromCanvasPos(image, canvas, mousePos);
-
     if( !mouseHasDragged ) {
       const selectedRoutes = getSelectedRoutes();
       const selectedRouteIndex = selectedRoutes[0];
@@ -146,6 +157,15 @@ function addTopoMouseSupport(image, canvas) {
   }
 }
 
+function GetDragPoint(imagePos, topoData) {
+  var dragPoint = null;
+  const closestTopoPoint = getClosestTopoPoint(imagePos, topoData);
+  if( closestTopoPoint.distance < 50 ) {
+    dragPoint = closestTopoPoint.index;
+  }
+  return dragPoint;
+}
+
 function addNewPointToRoute(points, route, pos) {
   const pointCount = points.push(pos);
   route.points.push(pointCount - 1);
@@ -163,28 +183,20 @@ function OnMouseMoveDuringModify(event, image, canvas) {
   var ctx=canvas.getContext("2d");
   const mousePos = getElementMousePos(canvas, event);
   const imageMousePos = getImagePosFromCanvasPos(image, canvas, mousePos);
-  const selectedRoutes = getSelectedRoutes();
-  closestTopoPoint = getClosestTopoPoint(imageMousePos, topoData, selectedRoutes);
   if( mouseDownOnTopoImage ) {
+    highlightedTopoPoint = null;
     const imageMouseDownPos = getImagePosFromCanvasPos(image, canvas, mouseDownPos);
     const mouseOffset = calculateMouseOffset(imageMouseDownPos, imageMousePos);
     const bounds = {minX:0, minY: 0, maxX:image.naturalWidth, maxY: image.naturalHeight };
-    moveTopoPoints(topoData, selectedTopoPoints, mouseOffset, bounds);
+    moveTopoPoint(topoData, dragPoint, mouseOffset, bounds);
     mouseHasDragged = true;
     drawTopoImage(image, canvas);
     drawTopoRoutes(image, canvas);
   }
   else {
-    if( closestTopoPoint.distance < 50 ) {
-      highlightedTopoPoint = closestTopoPoint.index;
-      drawTopoImage(image, canvas);
-      drawTopoRoutes(image, canvas);
-    }
-    else {
-      highlightedTopoPoint = null;
-      drawTopoImage(image, canvas);
-      drawTopoRoutes(image, canvas);
-    }
+    highlightedTopoPoint = GetDragPoint(imageMousePos, topoData);
+    drawTopoImage(image, canvas);
+    drawTopoRoutes(image, canvas);
   }
   mouseDownPos = mousePos;
 }
@@ -219,11 +231,9 @@ function calculateMouseOffset(startPos, endPos) {
   return {x: endPos.x - startPos.x, y: endPos.y - startPos.y };
 }
 
-function moveTopoPoints(topoData, topoPoints, offset) {
-  topoPoints.forEach( point => {
-    topoData.points[point].x += offset.x;
-    topoData.points[point].y += offset.y;
-  });
+function moveTopoPoint(topoData, topoPoint, offset) {
+  topoData.points[topoPoint].x += offset.x;
+  topoData.points[topoPoint].y += offset.y;
 }
 
 function addNewTopoPoint(topoData, pos) {
@@ -263,17 +273,15 @@ function getElementMousePos(element, event) {
   return {x: event.clientX - rect.left, y: event.clientY - rect.top}
 }
 
-function getClosestTopoPoint(imagePos, topoData, selectedRoutes) {
+function getClosestTopoPoint(imagePos, topoData, pointToIgnore) {
   var closestPoint = { index: -1, distance: Number.MAX_VALUE };
-  selectedRoutes.forEach( routeIndex => {
-    const points = topoData.routes[routeIndex].points;
-    points.forEach( pointIndex => {
-      const point = topoData.points[pointIndex];
+  topoData.points.forEach( (point, pointIndex) => {
+    if( pointIndex != pointToIgnore ) {
       var distance = Math.sqrt( Math.pow((imagePos.x-point.x), 2) + Math.pow((imagePos.y-point.y), 2) );
       if( distance < closestPoint.distance ) {
         closestPoint = { index: pointIndex, distance: distance };
       }
-     });
+    }
   });
   return closestPoint;
 }
@@ -355,30 +363,17 @@ function drawTopoRoutes(image, canvas) {
     });
   });
 
-  topoData.routes.forEach((route, routeIndex) => {
-    const lines = GetRouteLines(route);
-    lines.forEach(line => {
-      ctx.beginPath();
-      ctx.arc(pointsOnCanvas[line.start].x, pointsOnCanvas[line.start].y, 5, 0, 2 * Math.PI, false);
-      ctx.lineWidth = 1;
-      if( selectedTopoPoints.includes(line.start) ) {
-        ctx.fillStyle = "#00FF00";
-      }
-      else {
-        ctx.fillStyle = "#000000";
-      }
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(pointsOnCanvas[line.end].x, pointsOnCanvas[line.end].y, 5, 0, 2 * Math.PI, false);
-      ctx.lineWidth = 1;
-      if( selectedTopoPoints.includes(line.end) ) {
-        ctx.fillStyle = "#00FF00";
-      }
-      else {
-        ctx.fillStyle = "#000000";
-      }
-      ctx.fill();
-    });
+  pointsOnCanvas.forEach((point, pointIndex) => {
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI, false);
+    ctx.lineWidth = 1;
+    if( pointIndex == dragPoint ) {
+      ctx.fillStyle = "#00FF00";
+    }
+    else {
+      ctx.fillStyle = "#000000";
+    }
+    ctx.fill();
   });
 
   if( highlightedTopoPoint != undefined && highlightedTopoPoint != null ) {
