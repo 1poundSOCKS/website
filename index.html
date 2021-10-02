@@ -1,25 +1,25 @@
-<!DOCTYPE html>
 <html>
   <head>
-  <meta charset="utf-8">
-  <title>FreeTopo</title>
-  <link rel="stylesheet" href="stylesheets/default.css">
+      <meta charset="utf-8">
+      <title>FreeTopo</title>
+      <link rel="stylesheet" href="stylesheets/default.css">
   </head>
   <body>
-  <div class="header">Baildon Bank</div>
-  <div style="margin-top:20px;">
-  <canvas class="topo_image" id="topo_image"></canvas>
-  <table style="margin-top:20px;">
-      <thead>
-      <tr>
-      <th>Route</th>
-      <th>Name</th>
-      <th>Grade</th>
-      </tr>
-      </thead>
-      <tbody id="route_table"></tbody>
-  </table>
-  <script src="scripts/topo.js"></script>
-  </div>
+      <div class="header">FreeTopo - Crags</div>
+      <div class="edit-buttons">
+          <button class="topo-command-button" type="button" id="add-crag">Add crag</button>
+      </div>
+      <div>
+          <table class="crag-table" id="crag-table">
+              <thead>
+                  <tr>
+                    <th>Name</th>
+                  </tr>
+              </thead>
+              <tbody id="crag-table-body">
+              </tbody>
+          </table>
+      </div>
+      <script src="scripts/index/load.js"></script>
   </body>
 </html>

@@ -1,0 +1,34 @@
+<html>
+  <head>
+      <meta charset="utf-8">
+      <title>FreeTopo</title>
+      <link rel="stylesheet" href="stylesheets/default.css">
+  </head>
+  <body>
+      <div class="header">FreeTopo - </div>
+      <div class="edit-buttons">
+          <button class="topo-command-button" type="button" id="reset-route">Reset route</button>
+          <button class="topo-command-button" type="button" id="done">Done</button>
+      </div>
+      <div class="flex-container">
+          <div style="width: 40%">
+              <table class="route-table" id="route-table">
+                  <thead>
+                      <tr>
+                          <th class="route-checkbox-header"></th>
+                          <th>Id</th>
+                          <th>Name</th>
+                          <th>Grade</th>
+                      </tr>
+                  </thead>
+                  <tbody id="route-table-body"></tbody>
+              </table>
+          </div>
+          <div style="width: 60%">
+              <canvas class="topo-image" id="topo-image"></canvas>
+          </div>
+      </div>
+      <script src="scripts/topo/functions.js"></script>
+      <script src="scripts/topo/load.js"></script>
+  </body>
+</html>

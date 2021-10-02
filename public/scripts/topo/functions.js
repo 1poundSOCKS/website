@@ -2,35 +2,30 @@
 // functions
 //
 
-function addTopoMouseSupport(image, canvas) {
-  
-  canvas.onmousemove = function( event ) {
-    const editMode = GetEditMode();
-    switch( editMode ) {
-      case EDIT_MODE.Create:
-        OnMouseMoveDuringCreate(event, image, canvas);
-        break;
-      case EDIT_MODE.Modify:
-        OnMouseMoveDuringModify(event, image, canvas);
-        break;
-    }
+var mouseDownOnTopoImage = false;
+var closestTopoPoint = null;
+var highlightedTopoPoint = null;
+var selectedTopoPoints = [];
+var mouseDownPos = null;
+var mouseHasDragged = false;
+var dragPoint = null;
+
+function AddMouseSupportToCanvas(image, canvas) {
+  canvas.onmousemove = event => OnMouseMove(event, image, canvas);
+  canvas.onmousedown = event => OnMouseDown(event, image, canvas);
+  canvas.onmouseup = event => OnMouseUp(event, image, canvas);
+  canvas.onclick = event => OnClick(event, image, canvas);
+}
+
+function AddMouseSupportToTable(image, canvas, table) {
+  table.onclick = event => {
+    drawTopoImage(image, canvas);
+    drawTopoRoutes(image, canvas);
   }
-
-  canvas.onmousedown = OnMouseDownOnTopo;
-
-  canvas.onmouseup = OnMouseUpOnTopo;
-
-  canvas.onclick = OnMouseClickOnTopo;
 }
 
-function GetEditMode() {
-  return EDIT_MODE.Modify;
-}
-
-function OnMouseMoveDuringModify(event, image, canvas) {
-  var ctx=canvas.getContext("2d");
-  const mousePos = getElementMousePos(canvas, event);
-  const imageMousePos = getImagePosFromCanvasPos(image, canvas, mousePos);
+function OnMouseMove(event, image, canvas) {
+  const imageMousePos = GetImageMousePos(event, image, canvas);
   if( mouseDownOnTopoImage && dragPoint != null ) {
     highlightedTopoPoint = GetDragPoint(imageMousePos, topoData, dragPoint);
     const imageMouseDownPos = getImagePosFromCanvasPos(image, canvas, mouseDownPos);
@@ -38,43 +33,31 @@ function OnMouseMoveDuringModify(event, image, canvas) {
     const bounds = {minX:0, minY: 0, maxX:image.naturalWidth, maxY: image.naturalHeight };
     moveTopoPoint(topoData, dragPoint, mouseOffset, bounds);
     mouseHasDragged = true;
-    drawTopoImage(image, canvas);
-    drawTopoRoutes(image, canvas);
   }
   else {
     highlightedTopoPoint = GetDragPoint(imageMousePos, topoData);
-    drawTopoImage(image, canvas);
-    drawTopoRoutes(image, canvas);
   }
-  mouseDownPos = mousePos;
+  drawTopoImage(image, canvas);
+  drawTopoRoutes(image, canvas);
+  mouseDownPos = getElementMousePos(canvas, event);
 }
 
-function OnMouseMoveDuringCreate(event, image, canvas) {
-
-}
-
-function OnMouseDownOnTopo( event ) {
+function OnMouseDown(event, image, canvas) {
   mouseDownOnTopoImage = true;
   mouseHasDragged = false;
-  const canvas = document.getElementById("topo-image");
-  var ctx=canvas.getContext("2d");
-  const mousePos = getElementMousePos(canvas, event);
-  const imageMousePos = getImagePosFromCanvasPos(base_image, canvas, mousePos);
-  dragPoint = GetDragPoint(imageMousePos, topoData);
   highlightedTopoPoint = null;
-  drawTopoImage(base_image, canvas);
-  drawTopoRoutes(base_image, canvas);
+  const imageMousePos = GetImageMousePos(event, image, canvas);
+  dragPoint = GetDragPoint(imageMousePos, topoData);
+  drawTopoImage(image, canvas);
+  drawTopoRoutes(image, canvas);
 }
 
-function OnMouseUpOnTopo( event ) {
+function OnMouseUp(event, image, canvas) {
   mouseDownOnTopoImage = false;
 }
 
-function OnMouseClickOnTopo( event ) {
-  const canvas = document.getElementById("topo-image");
-  var ctx=canvas.getContext("2d");
-  const mousePos = getElementMousePos(canvas, event);
-  const imageMousePos = getImagePosFromCanvasPos(base_image, canvas, mousePos);
+function OnClick(event, image, canvas) {
+  const imageMousePos = GetImageMousePos(event, image, canvas);
   if( mouseHasDragged ) {
     if( highlightedTopoPoint != null ) {
       ReplacePoint(dragPoint, highlightedTopoPoint, topoData);
@@ -96,15 +79,13 @@ function OnMouseClickOnTopo( event ) {
   }
   highlightedTopoPoint = GetDragPoint(imageMousePos, topoData);
   dragPoint = null;
-  drawTopoImage(base_image, canvas);
-  drawTopoRoutes(base_image, canvas);
+  drawTopoImage(image, canvas);
+  drawTopoRoutes(image, canvas);
 }
 
-function addRouteTableMouseSupport(image, canvas, routeTable) {
-  routeTable.onclick = function( event ) {
-    drawTopoImage(image, canvas);
-    drawTopoRoutes(image, canvas);
-  }
+function GetImageMousePos(event, image, canvas) {
+  const mousePos = getElementMousePos(canvas, event);
+  return getImagePosFromCanvasPos(image, canvas, mousePos);
 }
 
 function getSelectedRoutes() {
@@ -315,20 +296,7 @@ function drawTopoRoutes(image, canvas) {
       ctx.stroke();
     });
   });
-/*
-  topoData.routes.forEach((route, routeIndex) => {
-    const lines = GetRouteLines(route);
-    lines.forEach(line => {
-      ctx.beginPath();
-      ctx.moveTo(pointsOnCanvas[line.start].x, pointsOnCanvas[line.start].y);
-      ctx.lineTo(pointsOnCanvas[line.end].x, pointsOnCanvas[line.end].y);
-      ctx.lineWidth = 2;
-      if( selectedRoutes.includes(routeIndex) ) ctx.strokeStyle = '#00FF00';
-      else ctx.strokeStyle = '#FFFFFF';
-      ctx.stroke();
-    });
-  });
-*/
+
   pointsOnCanvas.forEach((point, pointIndex) => {
     ctx.beginPath();
     ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI, false);

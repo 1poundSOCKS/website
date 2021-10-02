@@ -11,17 +11,34 @@
 table, th, td {
  border: 2px solid black;
 }
-button {
-  width: 20%;
-  background-color: black;
-  color: white;
-  font-size: large;
+table {
+  margin-top: 20px;
+  margin-left: 10%;
+  width: 80%;
+  border-collapse: collapse;
+  font-size: x-large;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 th {
   text-align: left;
   background-color: black;
   color: white;
+}
+tr:hover { 
+  background: grey; 
+}
+tr:active { 
+  background: blue; 
+}
+.crag-table tr td:nth-child(1) {
+  display: none;
+}
+button {
+  width: 20%;
+  background-color: black;
+  color: white;
+  font-size: large;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 .topo-image {
   align-content: center;
@@ -33,14 +50,6 @@ th {
   background-color:black;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   font-size: xx-large;
-}
-.route-table {
-  margin-top: 20px;
-  margin-left: 10%;
-  width: 80%;
-  border-collapse: collapse;
-  font-size: x-large;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 .edit-buttons {
   width: 100%;
