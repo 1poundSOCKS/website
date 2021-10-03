@@ -2,10 +2,6 @@
 // page load
 //
 
-const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
-const topoId = urlParams.get('topoid');
-
 fetch('/data/crag_list')
 .then(response => response.json())
 .then(data => {
@@ -21,8 +17,8 @@ function UpdateTable(tableBody, data) {
     row.appendChild(document.createElement('td')).appendChild(document.createTextNode(crag.name));
     tableBody.appendChild(row).onclick = event => {
       if( event != undefined )
-      //alert(event.currentTarget.rowIndex);
-      alert(event.currentTarget.cells[0].innerText);
+      location.href = '/crag?cragid=' + event.currentTarget.cells[0].innerText;
+      reload();
     };
   });
 }
