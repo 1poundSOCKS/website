@@ -13,7 +13,7 @@ fetch('/data/topo?topoid=' + topoId)
 .then(response => response.json())
 .then(data => {
   topoData = data;
-  base_image.src = 'data/topo/' + topoData.topo_image_file;
+  base_image.src = 'data/image/' + topoData.topo_image_file;
   base_image.onload = function() {
     drawRouteTable();
     resize();

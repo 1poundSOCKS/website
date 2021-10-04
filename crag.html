@@ -8,8 +8,20 @@
     <div class="header">FreeTopo</div>
     <div class="sub-header" id="crag-name">Crag</div>
     <div class="edit-buttons">
-          <button class="topo-command-button" type="button" id="add-topo">Add topo</button>
-      </div>
-      <script src="scripts/crag/load.js"></script>
+        <button class="topo-command-button" type="button" id="add-topo">Add topo</button>
+    </div>
+    <div>
+      <table class="topo-table" id="topo-table">
+          <thead>
+              <tr>
+                <th>Name</th>
+                <th>Image</th>
+              </tr>
+          </thead>
+          <tbody id="topo-table-body">
+          </tbody>
+      </table>
+  </div>
+  <script src="scripts/crag/load.js"></script>
   </body>
 </html>

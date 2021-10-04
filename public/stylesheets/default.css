@@ -33,6 +33,9 @@ tr:active {
 .crag-table tr td:nth-child(1) {
   display: none;
 }
+.topo-table tr td:nth-child(1) {
+  display: none;
+}
 button {
   width: 20%;
   background-color: black;
