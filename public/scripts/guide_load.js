@@ -16,9 +16,10 @@ function UpdateTable(tableBody, data) {
     row.appendChild(document.createElement('td')).appendChild(document.createTextNode(crag.id));
     row.appendChild(document.createElement('td')).appendChild(document.createTextNode(crag.name));
     tableBody.appendChild(row).onclick = event => {
-      if( event != undefined )
-      location.href = '/crag?cragid=' + event.currentTarget.cells[0].innerText;
-      reload();
+      if( event != undefined ) {
+        location.href = '/crag?cragid=' + event.currentTarget.cells[0].innerText;
+        reload();
+      }
     };
   });
 }

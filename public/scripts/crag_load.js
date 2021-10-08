@@ -26,7 +26,6 @@ function UpdateTable(tableBody, data) {
     var row = document.createElement('tr');
     row.appendChild(document.createElement('td')).appendChild(document.createTextNode(topo.id));
     row.appendChild(document.createElement('td')).appendChild(document.createTextNode(topo.name));
-    row.appendChild(document.createElement('td')).innerHTML = '<img src="data/image/' + topo.topo_image_file + '" border=3 height=100 width=200>';
     tableBody.appendChild(row).onclick = event => {
       if( event != undefined )
       location.href = '/topo?topoid=' + event.currentTarget.cells[0].innerText;

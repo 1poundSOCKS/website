@@ -251,10 +251,6 @@ function drawRouteTable() {
 }
 
 function drawTopoImage(image, canvas) {
-  var imageWidthToHeightRatio = image.height / image.width;
-  var canvasPos = canvas.getBoundingClientRect();
-  canvas.width = canvasPos.width;
-  canvas.height = canvasPos.height;// * imageWidthToHeightRatio;
   var ctx=canvas.getContext("2d");
   ctx.width = canvas.width;
   ctx.height = canvas.height;

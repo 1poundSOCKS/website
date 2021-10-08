@@ -30,6 +30,9 @@ tr:hover {
 tr:active { 
   background: blue; 
 }
+.guide-table tr td:nth-child(1) {
+  display: none;
+}
 .crag-table tr td:nth-child(1) {
   display: none;
 }
@@ -63,9 +66,9 @@ button {
   font-weight: bold;
 }
 .edit-buttons {
-  width: 100%;
+  width: 90%;
   margin-top: 20px;
-  margin-left: 10%;
+  margin-left: 5%;
 }
 .route-checkbox-header {
   width: 50px;
