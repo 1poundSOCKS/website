@@ -2,6 +2,17 @@
 // page load
 //
 
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+const guideId = urlParams.get('guideid');
+
+fetch('/data/guide?guideid=' + guideId)
+.then(response => response.json())
+.then(data => {
+  const cragName=document.getElementById('guide-name');
+  cragName.innerHTML = data.name;
+});
+
 fetch('/data/crag_list')
 .then(response => response.json())
 .then(data => {

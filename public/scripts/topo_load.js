@@ -15,9 +15,14 @@ fetch('/data/topo?topoid=' + topoId)
   fetch('data/crag?cragid=' + data.crag_id)
   .then(response => response.json())
   .then(cragData => {
-    const topoName=document.getElementById('topo-name');
-    topoName.innerHTML = cragData.name + ' / ' + data.name;
+    fetch('/data/guide?guideid=' + cragData.guide_id)
+    .then(response => response.json())
+    .then(guideData => {
+      const topoName=document.getElementById('topo-name');
+      topoName.innerHTML = guideData.name + ' / ' + cragData.name + ' / ' + data.name;
+    });
   });
+
   topoData = data;
   base_image.src = 'data/image/' + topoData.topo_image_file;
   base_image.onload = function() {

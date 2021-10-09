@@ -8,9 +8,13 @@ const cragId = urlParams.get('cragid');
 
 fetch('/data/crag?cragid=' + cragId)
 .then(response => response.json())
-.then(data => {
-  const cragName=document.getElementById('crag-name');
-  cragName.innerHTML = data.name;
+.then(cragData => {
+  fetch('/data/guide?guideid=' + cragData.guide_id)
+  .then(response => response.json())
+  .then(guideData => {
+    const cragName=document.getElementById('crag-name');
+    cragName.innerHTML = guideData.name + " / " + cragData.name;
+  });
 });
 
 fetch('/data/topo_list?cragid=' + cragId)
