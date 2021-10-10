@@ -87,3 +87,7 @@ app.get('/data/guide', function(req, res) {
 });
 
 app.listen(8080);
+
+function ReadGuideData( guideId ) {
+
+}
