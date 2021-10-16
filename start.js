@@ -11,23 +11,23 @@ var app = express();
 app.use(express.static(path.join(__dirname, "/public")));
 app.use(bodyParser.json());
 
-app.get('/', function(req, res) {
+app.get('/', (req, res) => {
     res.sendFile('./home.html', { root: __dirname });
 });
 
-app.get('/guide', function(req, res) {
+app.get('/guide', (req, res) => {
     res.sendFile('./guide.html', { root: __dirname });
 });
 
-app.get('/crag', function(req, res) {
+app.get('/crag', (req, res) => {
     res.sendFile('./crag.html', { root: __dirname });
 });
 
-app.get('/topo', function(req, res) {
+app.get('/topo', (req, res) => {
     res.sendFile('./topo.html', { root: __dirname });
 });
 
-app.get('/data/guide_list', function(req, res) {
+app.get('/data/guide_list', (req, res) => {
     ReadGuidesIntoResult(res);
 });
 
@@ -43,26 +43,16 @@ app.post('/data/add_topo', (req, res) => {
     AddDocumentToCollection(req.body, 'topos', res);
 });
 
-app.get('/data/crag_list', function(req, res) {
-    try {
-        ReadCragsIntoResult(req.query.guideid, res);
-    }
-    catch( e ) {
-        console.error(e);
-    }
+app.get('/data/crag_list', (req, res) => {
+    ReadCragsIntoResult(req.query.guideid, res);
 });
 
-app.get('/data/topo', function(req, res) {
+app.get('/data/topo', (req, res) => {
     ReadTopoIntoResult(req.query.topoid, res);
 });
 
 app.get('/data/topo_list', (req, res) => {
-    try {
-        ReadToposIntoResult(req.query.cragid, res);
-    }
-    catch( e ) {
-        console.error(e);
-    }
+    ReadToposIntoResult(req.query.cragid, res);
 });
 
 app.get('/data/crag', function(req, res) {
@@ -91,7 +81,7 @@ function AddDocumentToCollection(document, collectionName, res) {
         res.end();
     })
     .catch( (e) => {
-        console.error(e)
+        console.error(e);
     });
 }
 
