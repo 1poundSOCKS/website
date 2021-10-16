@@ -70,21 +70,6 @@ const CollectionFilter = {
     ParentId: "parent_id"
 }
 
-function AddDocumentToCollection(document, collectionName, res) {
-    console.log(document);
-    OpenConnection()
-    .then( (mongoClient) => {
-        const db = mongoClient.db("main");
-        return db.collection(collectionName).insertOne(document);
-    })
-    .then( () => {
-        res.end();
-    })
-    .catch( (e) => {
-        console.error(e);
-    });
-}
-
 let ReadGuideIntoResult = (guideId, res) => ReadFilteredCollectionIntoResult("guides", guideId, CollectionFilter.Id, res);
 let ReadGuidesIntoResult = (res) => ReadCollectionIntoResult("guides", res);
 let ReadCragIntoResult = (cragId, res) => ReadFilteredCollectionIntoResult("crags", cragId, CollectionFilter.Id, res);
@@ -92,34 +77,43 @@ let ReadTopoIntoResult = (topoId, res) => ReadFilteredCollectionIntoResult("topo
 let ReadCragsIntoResult = (guideId, res) => ReadFilteredCollectionIntoResult("crags", guideId, CollectionFilter.ParentId, res);
 let ReadToposIntoResult = (cragId, res) => ReadFilteredCollectionIntoResult("topos", cragId, CollectionFilter.ParentId, res);
 
-function ReadCollectionIntoResult(collectionName, res) {
-    OpenConnection()
-    .then( (mongoClient) => {
+async function AddDocumentToCollection(document, collectionName, res) {
+    try {
+        const mongoClient = await OpenConnection();
         const db = mongoClient.db("main");
-        return db.collection(collectionName).find({}).toArray();
-    })
-    .then((documents) => {
-        res.send({documents});
-    })
-    .catch( (e) => {
-        console.error(e);
-    });
-}
-
-function ReadFilteredCollectionIntoResult(collectionName, valueToKeep, filterBy, res) {
-    
-    OpenConnection()
-    .then( (mongoClient) => {
-        const db = mongoClient.db("main");
-        return db.collection(collectionName).find({[filterBy]: valueToKeep}).toArray();
-    })
-    .then( (documents) => {
-        res.send({documents});
-    })
-    .catch( (e) => {
+        await db.collection(collectionName).insertOne(document);
+        res.end();
+    }
+    catch( e ) {
         console.error(e);
         res.end();
-    });
+    }
+}
+
+async function ReadCollectionIntoResult(collectionName, res) {
+    try {
+        const mongoClient = await OpenConnection();
+        const db = mongoClient.db("main");
+        const documents = await db.collection(collectionName).find({}).toArray();
+        res.send({documents});
+    }
+    catch( e ) {
+        console.error(e);
+        res.end();
+    }
+}
+
+async function ReadFilteredCollectionIntoResult(collectionName, valueToKeep, filterBy, res) {
+    try {
+        const mongoClient = await OpenConnection();
+        const db = mongoClient.db("main");
+        const documents = await db.collection(collectionName).find({[filterBy]: valueToKeep}).toArray();
+        res.send({documents});
+    }
+    catch( e ) {
+        console.error(e);
+        res.end();
+    }
 }
 
 function OpenConnection() {
