@@ -1,0 +1,15 @@
+POST http://localhost:8080/data/add_guide
+Content-Type: application/json
+
+{
+  "name": "Yorkshire Gritstone"
+}
+
+###
+
+POST http://localhost:8080/data/add_guide
+Content-Type: application/json
+
+{
+  "name": "Peak Limestone North"
+}

@@ -1,0 +1,2 @@
+GET http://localhost:8080/data/guide_list
+Content-Type: application/json

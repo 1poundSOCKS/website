@@ -22,9 +22,9 @@ fetch('/data/crag_list')
 
 function UpdateTable(tableBody, data) {
   tableBody.innerHTML = '';
-  data.crags.forEach(crag => {
+  data.documents.forEach(crag => {
     var row = document.createElement('tr');
-    row.appendChild(document.createElement('td')).appendChild(document.createTextNode(crag.id));
+    row.appendChild(document.createElement('td')).appendChild(document.createTextNode(crag._id));
     row.appendChild(document.createElement('td')).appendChild(document.createTextNode(crag.name));
     tableBody.appendChild(row).onclick = event => {
       if( event != undefined ) {

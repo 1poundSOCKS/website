@@ -11,9 +11,9 @@ fetch('/data/guide_list')
 
 function UpdateTable(tableBody, data) {
   tableBody.innerHTML = '';
-  data.guides.forEach(guide => {
+  data.documents.forEach(guide => {
     var row = document.createElement('tr');
-    row.appendChild(document.createElement('td')).appendChild(document.createTextNode(guide.id));
+    row.appendChild(document.createElement('td')).appendChild(document.createTextNode(guide._id));
     row.appendChild(document.createElement('td')).appendChild(document.createTextNode(guide.name));
     tableBody.appendChild(row).onclick = event => {
       if( event != undefined ) {

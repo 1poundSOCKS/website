@@ -1,0 +1,7 @@
+POST http://localhost:8080/data/add_crag
+Content-Type: application/json
+
+{
+  "parent_id": "6168278bb6c81140cde3b2ef",
+  "name": "Baildon Bank"
+}

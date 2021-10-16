@@ -1,10 +1,15 @@
 var express = require('express');
+var bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs-extra');
+global.TextEncoder = require("util").TextEncoder;
+global.TextDecoder = require("util").TextDecoder;
+var MongoClient = require('mongodb').MongoClient;
 
 var app = express();
 
 app.use(express.static(path.join(__dirname, "/public")));
+app.use(bodyParser.json());
 
 app.get('/', function(req, res) {
     res.sendFile('./home.html', { root: __dirname });
@@ -23,71 +28,110 @@ app.get('/topo', function(req, res) {
 });
 
 app.get('/data/guide_list', function(req, res) {
-    const folder = './public/data/guide/';
-    fs.readdir(folder, (err, files) => {
-        var output = {guides: []};
-        files.forEach(file => {
-            const fileContents = fs.readFileSync('./public/data/guide/' + file, 'utf8');
-            const fileData = JSON.parse(fileContents);
-            output.guides.push({id: fileData.id, name: fileData.name});
-        });
-        const outputString = JSON.stringify(output);
-        res.send(outputString);
-    })
+    ReadGuidesIntoResult(res);
+});
+
+app.post('/data/add_guide', (req, res) => {
+    AddDocumentToCollection(req.body, 'guides', res);
+});
+
+app.post('/data/add_crag', (req, res) => {
+    AddDocumentToCollection(req.body, 'crags', res);
+});
+
+app.post('/data/add_topo', (req, res) => {
+    AddDocumentToCollection(req.body, 'topos', res);
 });
 
 app.get('/data/crag_list', function(req, res) {
-    const folder = './public/data/crags/';
-    fs.readdir(folder, (err, files) => {
-        var output = {crags: []};
-        files.forEach(file => {
-            const fileContents = fs.readFileSync('./public/data/crags/' + file, 'utf8');
-            const fileData = JSON.parse(fileContents);
-            output.crags.push({id: fileData.id, name: fileData.name});
-        });
-        const outputString = JSON.stringify(output);
-        res.send(outputString);
-    })
+    try {
+        ReadCragsIntoResult(req.query.guideid, res);
+    }
+    catch( e ) {
+        console.error(e);
+    }
 });
 
 app.get('/data/topo', function(req, res) {
-    if( req.query.topoid.length != undefined && req.query.topoid.length > 0 )
-        res.sendFile('./public/data/topo/' + req.query.topoid + '.json', { root: __dirname });
-    else
-        res.end();
+    ReadTopoIntoResult(req.query.topoid, res);
 });
 
-app.get('/data/topo_list', function(req, res) {
-    const folder = './public/data/topo/';
-    fs.readdir(folder, (err, files) => {
-        var output = {topos: []};
-        files.forEach(file => {
-            const fileContents = fs.readFileSync('./public/data/topo/' + file, 'utf8');
-            const fileData = JSON.parse(fileContents);
-            if( req.query.cragid == undefined || fileData.crag_id == req.query.cragid )
-                output.topos.push({id: fileData.id, name: fileData.name, topo_image_file: fileData.topo_image_file});
-        });
-        const outputString = JSON.stringify(output);
-        res.send(outputString);
-    })
+app.get('/data/topo_list', (req, res) => {
+    try {
+        ReadToposIntoResult(req.query.cragid, res);
+    }
+    catch( e ) {
+        console.error(e);
+    }
 });
 
 app.get('/data/crag', function(req, res) {
-    if( req.query.cragid.length != undefined && req.query.cragid.length > 0 )
-        res.sendFile('./public/data/crags/' + req.query.cragid + '.json', { root: __dirname });
-    else
-        res.end();
+    ReadCragIntoResult(req.query.cragid, res);
 });
 
 app.get('/data/guide', function(req, res) {
-    if( req.query.guideid.length != undefined && req.query.guideid.length > 0 )
-        res.sendFile('./public/data/guide/' + req.query.guideid + '.json', { root: __dirname });
-    else
-        res.end();
+    ReadGuideIntoResult(req.query.guideid, res);
 });
 
 app.listen(8080);
 
-function ReadGuideData( guideId ) {
+const CollectionFilter = {
+	Id: "_id",
+    ParentId: "parent_id"
+}
 
+function AddDocumentToCollection(document, collectionName, res) {
+    console.log(document);
+    OpenConnection()
+    .then( (mongoClient) => {
+        const db = mongoClient.db("main");
+        return db.collection(collectionName).insertOne(document);
+    })
+    .then( () => {
+        res.end();
+    })
+    .catch( (e) => {
+        console.error(e)
+    });
+}
+
+let ReadGuideIntoResult = (guideId, res) => ReadFilteredCollectionIntoResult("guides", guideId, CollectionFilter.Id, res);
+let ReadGuidesIntoResult = (res) => ReadCollectionIntoResult("guides", res);
+let ReadCragIntoResult = (cragId, res) => ReadFilteredCollectionIntoResult("crags", cragId, CollectionFilter.Id, res);
+let ReadTopoIntoResult = (topoId, res) => ReadFilteredCollectionIntoResult("topos", topoId, CollectionFilter.Id, res);
+let ReadCragsIntoResult = (guideId, res) => ReadFilteredCollectionIntoResult("crags", guideId, CollectionFilter.ParentId, res);
+let ReadToposIntoResult = (cragId, res) => ReadFilteredCollectionIntoResult("topos", cragId, CollectionFilter.ParentId, res);
+
+function ReadCollectionIntoResult(collectionName, res) {
+    OpenConnection()
+    .then( (mongoClient) => {
+        const db = mongoClient.db("main");
+        return db.collection(collectionName).find({}).toArray();
+    })
+    .then((documents) => {
+        res.send({documents});
+    })
+    .catch( (e) => {
+        console.error(e);
+    });
+}
+
+function ReadFilteredCollectionIntoResult(collectionName, valueToKeep, filterBy, res) {
+    
+    OpenConnection()
+    .then( (mongoClient) => {
+        const db = mongoClient.db("main");
+        return db.collection(collectionName).find({[filterBy]: valueToKeep}).toArray();
+    })
+    .then( (documents) => {
+        res.send({documents});
+    })
+    .catch( (e) => {
+        console.error(e);
+        res.end();
+    });
+}
+
+function OpenConnection() {
+    return MongoClient.connect("mongodb://localhost:27017");
 }
