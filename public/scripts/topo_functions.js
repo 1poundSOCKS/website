@@ -224,30 +224,32 @@ function getDistinctRoutePoints(route) {
   return points;
 }
 
-function drawRouteTable() {
+function drawRouteTable(topoData) {
   var routeTable=document.getElementById("route-table-body");
   routeTable.innerHTML = '';
-  topoData.routes.forEach(element => {
+  if( topoData.results.routes != undefined ) {
+    topoData.results.routes.forEach(element => {
 
-    var select = document.createElement('td');
-    select.innerHTML = '<input class="route-checkbox" type="checkbox" />';
-
-    var id = document.createElement('td');
-    id.appendChild(document.createTextNode(element.id));
-
-    var name = document.createElement('td');
-    name.appendChild(document.createTextNode(element.name));
-
-    var grade = document.createElement('td');
-    grade.appendChild(document.createTextNode(element.grade));
-
-    var row = document.createElement('tr');
-    row.appendChild(select);
-    row.appendChild(id);
-    row.appendChild(name);
-    row.appendChild(grade);
-    routeTable.appendChild(row);
-  });
+      var select = document.createElement('td');
+      select.innerHTML = '<input class="route-checkbox" type="checkbox" />';
+  
+      var id = document.createElement('td');
+      id.appendChild(document.createTextNode(element.id));
+  
+      var name = document.createElement('td');
+      name.appendChild(document.createTextNode(element.name));
+  
+      var grade = document.createElement('td');
+      grade.appendChild(document.createTextNode(element.grade));
+  
+      var row = document.createElement('tr');
+      row.appendChild(select);
+      row.appendChild(id);
+      row.appendChild(name);
+      row.appendChild(grade);
+      routeTable.appendChild(row);
+    });
+  }
 }
 
 function drawTopoImage(image, canvas) {

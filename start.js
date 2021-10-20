@@ -5,6 +5,7 @@ const fs = require('fs-extra');
 global.TextEncoder = require("util").TextEncoder;
 global.TextDecoder = require("util").TextDecoder;
 var MongoClient = require('mongodb').MongoClient;
+var ObjectId = require('mongodb').ObjectId;
 
 var app = express();
 
@@ -44,45 +45,54 @@ app.post('/data/add_topo', (req, res) => {
 });
 
 app.get('/data/crag_list', (req, res) => {
-    ReadCragsIntoResult(req.query.guideid, res);
+    console.log(`fetch crag list (guide_id='${req.query.guide_id}')`);
+    ReadCragsIntoResult(req.query.guide_id, res);
 });
 
 app.get('/data/topo', (req, res) => {
-    ReadTopoIntoResult(req.query.topoid, res);
+    console.log(`fetch topo data (topo_id='${req.query.topo_id}')`);
+    ReadTopoIntoResult(req.query.topo_id, res);
 });
 
 app.get('/data/topo_list', (req, res) => {
-    ReadToposIntoResult(req.query.cragid, res);
+    console.log(`fetch topo list (crag_id='${req.query.crag_id}')`);
+    ReadToposIntoResult(req.query.crag_id, res);
 });
 
-app.get('/data/crag', function(req, res) {
-    ReadCragIntoResult(req.query.cragid, res);
+app.get('/data/crag', (req, res) => {
+    console.log(`fetch crag data (crag_id='${req.query.crag_id}')`);
+    ReadCragIntoResult(req.query.crag_id, res);
 });
 
-app.get('/data/guide', function(req, res) {
-    ReadGuideIntoResult(req.query.guideid, res);
+app.get('/data/guide', (req, res) => {
+    console.log(`fetch guide data (guide_id='${req.query.guide_id}')`);
+    ReadGuideIntoResult(req.query.guide_id, res);
 });
 
 app.listen(8080);
 
 const CollectionFilter = {
-	Id: "_id",
     ParentId: "parent_id"
 }
 
-let ReadGuideIntoResult = (guideId, res) => ReadFilteredCollectionIntoResult("guides", guideId, CollectionFilter.Id, res);
+const ParentCollection = {
+    topos: "crags",
+    crags: "guides"
+}
+
+let ReadGuideIntoResult = (guideId, res) => ReadObjectIntoResult("guides", guideId, res);
 let ReadGuidesIntoResult = (res) => ReadCollectionIntoResult("guides", res);
-let ReadCragIntoResult = (cragId, res) => ReadFilteredCollectionIntoResult("crags", cragId, CollectionFilter.Id, res);
-let ReadTopoIntoResult = (topoId, res) => ReadFilteredCollectionIntoResult("topos", topoId, CollectionFilter.Id, res);
-let ReadCragsIntoResult = (guideId, res) => ReadFilteredCollectionIntoResult("crags", guideId, CollectionFilter.ParentId, res);
-let ReadToposIntoResult = (cragId, res) => ReadFilteredCollectionIntoResult("topos", cragId, CollectionFilter.ParentId, res);
+let ReadCragIntoResult = (cragId, res) => ReadFullObjectIntoResult("crags", cragId, res);
+let ReadTopoIntoResult = (topoId, res) => ReadFullObjectIntoResult("topos", topoId, res);
+let ReadCragsIntoResult = (guideId, res) => ReadFilteredCollectionIntoResult("crags", CollectionFilter.ParentId, guideId, res);
+let ReadToposIntoResult = (cragId, res) => ReadFilteredCollectionIntoResult("topos", CollectionFilter.ParentId, cragId, res);
 
-async function AddDocumentToCollection(document, collectionName, res) {
+let AddDocumentToCollection = async (document, collectionName, res) => {
     try {
         const mongoClient = await OpenConnection();
         const db = mongoClient.db("main");
-        await db.collection(collectionName).insertOne(document);
-        res.end();
+        const results = await db.collection(collectionName).insertOne(document);
+        res.send(results);
     }
     catch( e ) {
         console.error(e);
@@ -90,12 +100,11 @@ async function AddDocumentToCollection(document, collectionName, res) {
     }
 }
 
-async function ReadCollectionIntoResult(collectionName, res) {
+let ReadObjectIntoResult = async (collectionName, objectId, res) => {
     try {
-        const mongoClient = await OpenConnection();
-        const db = mongoClient.db("main");
-        const documents = await db.collection(collectionName).find({}).toArray();
-        res.send({documents});
+        const document = await ReadObject(collectionName, objectId);
+        const results = document[0];
+        res.send({results});
     }
     catch( e ) {
         console.error(e);
@@ -103,12 +112,10 @@ async function ReadCollectionIntoResult(collectionName, res) {
     }
 }
 
-async function ReadFilteredCollectionIntoResult(collectionName, valueToKeep, filterBy, res) {
+let ReadFullObjectIntoResult = async (collectionName, objectId, res) => {
     try {
-        const mongoClient = await OpenConnection();
-        const db = mongoClient.db("main");
-        const documents = await db.collection(collectionName).find({[filterBy]: valueToKeep}).toArray();
-        res.send({documents});
+        const results = await ReadFullObject(collectionName, objectId);
+        res.send({results});
     }
     catch( e ) {
         console.error(e);
@@ -116,6 +123,65 @@ async function ReadFilteredCollectionIntoResult(collectionName, valueToKeep, fil
     }
 }
 
-function OpenConnection() {
-    return MongoClient.connect("mongodb://localhost:27017");
+let ReadCollectionIntoResult = async (collectionName, res) => {
+    console.log(`reading collection '${collectionName}'`);
+    try {
+        const results = await ReadCollection(collectionName);
+        res.send({results});
+    }
+    catch( e ) {
+        console.error(e);
+        res.end();
+    }
 }
+
+let ReadFilteredCollectionIntoResult = async (collectionName, filterBy, valueToKeep, res) => {
+    try {
+        const results = await ReadFilteredCollection(collectionName, filterBy, valueToKeep);
+        res.send({results});
+    }
+    catch( e ) {
+        console.error(e);
+        res.end();
+    }
+}
+
+let ReadObject = async (collectionName, objectId) => {
+    console.log(`reading object '${objectId}' from collection '${collectionName}'`);
+    const mongoClient = await OpenConnection();
+    const db = mongoClient.db("main");
+    const id = ObjectId(objectId);
+    return db.collection(collectionName).find({_id: id}).toArray();
+}
+
+let ReadFullObject = async (collectionName, objectId) => {
+    console.log(`reading object '${objectId}' from collection '${collectionName}'`);
+    const mongoClient = await OpenConnection();
+    const db = mongoClient.db("main");
+    return ReadObjectAndRecurseParent(db, collectionName, ObjectId(objectId));
+}
+
+let ReadObjectAndRecurseParent = async (db, collectionName, objectId) => {
+    const documents = await db.collection(collectionName).find({_id: objectId}).toArray();
+    const results = documents[0];
+    if( results.parent_id != undefined ) {
+        results.parent_data = await ReadObjectAndRecurseParent(db, ParentCollection[collectionName], ObjectId(results.parent_id));
+    }
+    return results;
+}
+
+let ReadCollection = async (collectionName) => {
+    console.log(`reading collection '${collectionName}'`);
+    const mongoClient = await OpenConnection();
+    const db = mongoClient.db("main");
+    return db.collection(collectionName).find({}).toArray();
+}
+
+let ReadFilteredCollection = async (collectionName, filterBy, valueToKeep) => {
+    console.log(`reading collection '${collectionName}', filtered by ${filterBy}='${valueToKeep}'`);
+    const mongoClient = await OpenConnection();
+    const db = mongoClient.db("main");
+    return db.collection(collectionName).find({[filterBy]: valueToKeep}).toArray();
+}
+
+let OpenConnection = () => MongoClient.connect("mongodb://localhost:27017");

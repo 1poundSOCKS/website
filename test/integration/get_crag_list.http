@@ -1,2 +1,2 @@
-GET http://localhost:8080/data/crag_list?guideid=6168278bb6c81140cde3b2ef
+GET http://localhost:8080/data/crag_list?guide_id=6168278bb6c81140cde3b2ef
 Content-Type: application/json

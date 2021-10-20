@@ -1,0 +1,2 @@
+GET http://localhost:8080/data/crag?crag_id=61682a00595275c571bd928e
+Content-Type: application/json

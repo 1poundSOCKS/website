@@ -2,24 +2,26 @@
 // page load
 //
 
-fetch('/data/guide_list')
-.then(response => response.json())
-.then(data => {
-  const tableBody=document.getElementById('guide-table-body');
-  UpdateTable(tableBody, data);
-});
-
 function UpdateTable(tableBody, data) {
   tableBody.innerHTML = '';
-  data.documents.forEach(guide => {
+  data.results.forEach(guide => {
     var row = document.createElement('tr');
     row.appendChild(document.createElement('td')).appendChild(document.createTextNode(guide._id));
     row.appendChild(document.createElement('td')).appendChild(document.createTextNode(guide.name));
     tableBody.appendChild(row).onclick = event => {
       if( event != undefined ) {
-        location.href = '/guide?guideid=' + event.currentTarget.cells[0].innerText;
+        location.href = `/guide?guide_id=${event.currentTarget.cells[0].innerText}`;
         reload();
       }
     };
   });
 }
+
+let LoadPage = async () => {
+  const response = await fetch('/data/guide_list');
+  const guideList = await response.json();
+  const tableBody=document.getElementById('guide-table-body');
+  UpdateTable(tableBody, guideList);
+}
+
+LoadPage();

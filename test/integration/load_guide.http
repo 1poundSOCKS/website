@@ -1,2 +1,2 @@
-GET http://localhost:8080/data/guide?guideid=6168278bb6c81140cde3b2ef
+GET http://localhost:8080/data/guide?guide_id=6168278bb6c81140cde3b2ef
 Content-Type: application/json
