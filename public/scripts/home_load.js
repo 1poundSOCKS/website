@@ -2,7 +2,7 @@
 // page load
 //
 
-function UpdateTable(tableBody, data) {
+let UpdateTable = (tableBody, data) => {
   tableBody.innerHTML = '';
   data.results.forEach(guide => {
     var row = document.createElement('tr');
@@ -17,11 +17,37 @@ function UpdateTable(tableBody, data) {
   });
 }
 
+let CreateGuide = async (guideName) => {
+  const response = await fetch('/data/add_guide', {
+    method: 'post',
+    headers: {
+      'Accept': 'application/json, text/plain, */*',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({name: guideName})
+  });
+
+  return response.json();
+}
+
 let LoadPage = async () => {
   const response = await fetch('/data/guide_list');
   const guideList = await response.json();
   const tableBody=document.getElementById('guide-table-body');
   UpdateTable(tableBody, guideList);
+  const createButton = document.getElementById('create-guide');
+  const dialog = document.getElementById('create-guide-dialog');
+  createButton.onclick = () => {
+    dialog.showModal();
+  }
+  dialog.addEventListener('close', async () => {
+    const rv = dialog.returnValue;
+    if( rv == 'confirm' ) {
+      const guideName = document.getElementById('guide-name').value;
+      const response = await CreateGuide(guideName);
+      alert(JSON.stringify(response));
+    }
+  });
 }
 
 LoadPage();

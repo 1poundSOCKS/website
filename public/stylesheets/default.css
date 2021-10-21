@@ -46,6 +46,10 @@ button {
   font-size: large;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
+label, input {
+  font-size: x-large;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
 .topo-image {
   align-content: center;
   width: 95%;
@@ -82,4 +86,13 @@ button {
   width: 20%;
   height: 50px;
   margin-top: 10px;
+}
+#create-guide-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 500px;
+  margin-left: -250px;
+  height: 100px;
+  margin-top: -50px;
 }
