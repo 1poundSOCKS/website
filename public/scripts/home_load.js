@@ -30,22 +30,30 @@ let CreateGuide = async (guideName) => {
   return response.json();
 }
 
-let LoadPage = async () => {
+let LoadGuideTable = async () => {
   const response = await fetch('/data/guide_list');
   const guideList = await response.json();
   const tableBody=document.getElementById('guide-table-body');
   UpdateTable(tableBody, guideList);
+}
+
+let LoadPage = async () => {
+  await LoadGuideTable();
+
   const createButton = document.getElementById('create-guide');
   const dialog = document.getElementById('create-guide-dialog');
   createButton.onclick = () => {
     dialog.showModal();
   }
+  
   dialog.addEventListener('close', async () => {
     const rv = dialog.returnValue;
     if( rv == 'confirm' ) {
       const guideName = document.getElementById('guide-name').value;
       const response = await CreateGuide(guideName);
-      alert(JSON.stringify(response));
+      // TODO: check response
+      // {"acknowledged":true,"insertedId":"61726db5a7488601199a1b12"}
+      LoadGuideTable();
     }
   });
 }
