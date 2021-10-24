@@ -44,6 +44,10 @@ app.post('/data/add_topo', (req, res) => {
     AddDocumentToCollection(req.body, 'topos', res);
 });
 
+app.post('/data/update_topo', (req, res) => {
+    UpdateTopo(req.body, res);
+});
+
 app.get('/data/crag_list', (req, res) => {
     console.log(`fetch crag list (guide_id='${req.query.guide_id}')`);
     ReadCragsIntoResult(req.query.guide_id, res);
@@ -86,6 +90,21 @@ let ReadCragIntoResult = (cragId, res) => ReadFullObjectIntoResult("crags", crag
 let ReadTopoIntoResult = (topoId, res) => ReadFullObjectIntoResult("topos", topoId, res);
 let ReadCragsIntoResult = (guideId, res) => ReadFilteredCollectionIntoResult("crags", CollectionFilter.ParentId, guideId, res);
 let ReadToposIntoResult = (cragId, res) => ReadFilteredCollectionIntoResult("topos", CollectionFilter.ParentId, cragId, res);
+let UpdateTopo = async (data, res) => {
+    try {
+        console.log(JSON.stringify(data));
+        var query = { _id: ObjectId(data._id) };
+        delete data._id;
+        const mongoClient = await OpenConnection();
+        const db = mongoClient.db("main");
+        const results = await db.collection('topos').replaceOne(query, data);
+        res.send(results);
+    }
+    catch( e ) {
+        console.error(e.message);
+        res.end();
+    }
+}
 
 let AddDocumentToCollection = async (document, collectionName, res) => {
     try {

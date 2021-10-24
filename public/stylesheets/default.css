@@ -87,7 +87,7 @@ label, input {
   height: 50px;
   margin-top: 10px;
 }
-#create-guide-dialog, #add-crag-dialog, #add-topo-dialog {
+#create-guide-dialog, #add-crag-dialog, #add-topo-dialog, #add-route-dialog {
   position: fixed;
   top: 50%;
   left: 50%;

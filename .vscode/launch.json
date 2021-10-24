@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "command": "npm start",
+            "command": "nodemon start",
             "name": "Start",
             "request": "launch",
             "type": "node-terminal"

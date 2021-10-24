@@ -8,9 +8,9 @@
       <div class="header">FreeTopo</div>
       <div class="sub-header" id="topo-name">Topo</div>
       <div class="edit-buttons">
-          <button class="topo-command-button" type="button" id="reset-route">Reset route</button>
-          <button class="topo-command-button" type="button" id="done">Done</button>
-      </div>
+        <button class="topo-command-button" type="button" id="add-route">Add route</button>
+        <button class="topo-command-button" type="button" id="save-changes">Save changes</button>
+    </div>
       <div class="flex-container">
           <div style="width: 40%">
               <table class="route-table" id="route-table">
@@ -29,6 +29,16 @@
               <canvas class="topo-image" id="topo-image"></canvas>
           </div>
       </div>
+      <dialog id="add-route-dialog">
+        <form method="dialog">
+          <label for="route-name">Route name:</label>
+          <input id="route-name">
+          <menu>
+            <button value="cancel">Cancel</button>
+            <button value="confirm">Confirm</button>
+          </menu>
+        </form>
+      </dialog>
       <script src="scripts/topo_functions.js"></script>
       <script src="scripts/topo_load.js"></script>
   </body>
