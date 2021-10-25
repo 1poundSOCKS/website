@@ -16,9 +16,16 @@ let LoadTopoData = async (topoId) => {
 }
 
 let UpdateTopoData = async (topoData) => {
-  const response = await fetch('/data/update_topo');
-  const data = await response.json();
-  return data.results;
+  const response = await fetch('/data/update_topo', {
+    method: 'post',
+    headers: {
+      'Accept': 'application/json, text/plain, */*',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(topoData)
+  });
+
+  return response.json();
 }
 
 function Resize() {
@@ -54,7 +61,9 @@ let LoadPage = async (topoId) => {
   const topoData = await LoadTopoData(topoId);
   const topoName=document.getElementById('topo-name');
   topoName.innerHTML = `${topoData.parent_data.parent_data.name} - ${topoData.parent_data.name} - ${topoData.name}`;
-/*
+
+  UpdateRouteTable(topoData);
+  /*
   base_image = await LoadImage(`data/image/${topoData.results.image_file}`);
   const canvas=document.getElementById("topo-image");
   const canvasPos = canvas.getBoundingClientRect();
@@ -87,6 +96,9 @@ let LoadPage = async (topoId) => {
   });
   
   const saveButton = document.getElementById('save-changes');
+  saveButton.onclick = () => {
+    UpdateTopoData(topoData);
+  }
 }
 
 var topoData;
