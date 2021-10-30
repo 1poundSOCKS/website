@@ -46,7 +46,7 @@ button {
   font-size: large;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
-label, input {
+label, input, select {
   font-size: x-large;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
@@ -95,4 +95,8 @@ label, input {
   margin-left: -250px;
   height: 100px;
   margin-top: -50px;
+}
+#add-route-dialog {
+  height: 200px;
+  margin-top: -10px;
 }
