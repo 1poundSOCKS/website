@@ -9,6 +9,7 @@
       <div class="sub-header" id="topo-name">Topo</div>
       <div class="edit-buttons">
         <button class="topo-command-button" type="button" id="add-route">Add route</button>
+        <button class="topo-command-button" type="button" id="edit-route">Edit route</button>
         <button class="topo-command-button" type="button" id="save-changes">Save changes</button>
     </div>
       <div class="flex-container">
@@ -30,22 +31,14 @@
               <canvas class="topo-image" id="topo-image"></canvas>
           </div>
       </div>
-      <dialog id="add-route-dialog">
+      <dialog id="route-dialog">
         <form method="dialog">
-          <label for="route-name">Route name:</label>
-          <input id="route-name" autofocus="autofocus">
+          <label for="route-name">Name:</label>
+          <input id="route-name" autofocus="autofocus" autocorrect="off" autocomplete="off">
           <label for="route-type">Type:</label>
-          <select id="route-type" autocorrect="off" autocomplete="off">
-            <option value="" selected="selected"></option>
-            <option value="trad">Trad</option>
-            <option value="sport">Sport</option>
-          </select>
+          <select id="route-type" autocorrect="off" autocomplete="off"></select>
           <label for="route-grade-system">Grade system:</label>
-          <select id="route-grade-system" autocorrect="off" autocomplete="off">
-            <option value="" selected="selected"></option>
-            <option value="uk">UK</option>
-            <option value="french">French</option>
-          </select>
+          <select id="route-grade-system" autocorrect="off" autocomplete="off"></select>
           <div id="system-specific-grade"></div>
           <menu>
             <button value="cancel">Cancel</button>
@@ -54,6 +47,7 @@
         </form>
       </dialog>
       <script src="scripts/topo_functions.js"></script>
+      <script src="scripts/route_dialog.js"></script>
       <script src="scripts/topo_load.js"></script>
   </body>
 </html>
