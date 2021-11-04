@@ -203,17 +203,19 @@ let InitRouteDialog = (route) => {
   document.getElementById('system-specific-grade').innerHTML = GetFullGradeSelectionHtml(gradeSystem.value);
 
   document.getElementById('route-grade').value = (route.grade == undefined || route.grade.value == undefined) ? '' : route.grade.value;
+  const additionalRouteGradeFieldDropdown = document.getElementById('additional-route-grade');
+  if( additionalRouteGradeFieldDropdown != undefined ) {
+    additionalRouteGradeFieldDropdown.value = (route.grade == undefined || route.grade.additional_value == undefined) ? '' : route.grade.additional_value;
+  }
 }
 
-let GetRouteFromDialog = () => {
-  const routeName = document.getElementById('route-name').value;
-  const routeType = document.getElementById('route-type').value;
-  const routeGradeSystem = document.getElementById('route-grade-system').value;
-  const routeGradeValue = GetRouteGradeValue(routeGradeSystem);
-  const additionalRouteGradeValue = GetAdditionalRouteGradeValue(routeGradeSystem);
-  const routeGrade = {system: routeGradeSystem, value: routeGradeValue, additional_value: additionalRouteGradeValue};
-  const route = {id: -1, name: routeName, type: routeType, grade: routeGrade };
-  return route;
+let UpdateRouteFromDialog = (route) => {
+  route.name = document.getElementById('route-name').value;
+  route.type = document.getElementById('route-type').value;
+  route.grade = {};
+  route.grade.system = document.getElementById('route-grade-system').value;
+  route.grade.value = GetRouteGradeValue(route.grade.system);
+  route.grade.additional_value = GetAdditionalRouteGradeValue(route.grade.system);
 }
 
 let EditRouteDialog = (route, onconfirm) => {
@@ -222,7 +224,8 @@ let EditRouteDialog = (route, onconfirm) => {
   dialog.onclose = (event) => {
     const rv = dialog.returnValue;
     if( rv == 'confirm' ) {
-      onconfirm(GetRouteFromDialog());
+      UpdateRouteFromDialog(route);
+      onconfirm(route);
     }
   }
   dialog.showModal();

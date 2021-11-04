@@ -85,6 +85,12 @@ let GetSelectedRoute = (topoData) => {
   return null;
 }
 
+let UpdateRouteById = (topoData, newRoute) => {
+  const newRoutes = topoData.routes.map(route => {
+    return (route.id == newRoute.id) ? newRoute : route;
+  });
+}
+
 let LoadPage = async (topoId) => {
   const topoData = await LoadTopoData(topoId);
   const topoName=document.getElementById('topo-name');
@@ -121,9 +127,7 @@ let LoadPage = async (topoId) => {
     const route = GetSelectedRoute(topoData);
     if( route != null ) {
       EditRouteDialog(route, (newRoute) => {
-        topoData.routes = (topoData.routes == undefined) ? [] : topoData.routes;
-        newRoute.id = topoData.routes.length + 1;
-        topoData.routes.push(newRoute);
+        UpdateRouteById(topoData, newRoute);
         UpdateRouteTable(topoData);
       });
     }
