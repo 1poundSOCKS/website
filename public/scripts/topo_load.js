@@ -34,37 +34,6 @@ function Resize() {
   drawTopoRoutes(base_image, canvas);
 }
 
-let CreateRowFromObject = (route) => {
-  let row = document.createElement('tr');
-  row.innerHTML = 
-  `<td><input id="route-checkbox" class="route-checkbox" type="checkbox"/></td>
-  <td>${route.id}</td>
-  <td>${route.name}</td>
-  <td>${GetRouteTypeForDisplay(route.type)}</td>
-  <td>${GetDisplayGrade(route.grade)}</td>`;
-  return row;
-}
-
-// let CreateObjectFromRow = (row) => {
-//   return {id: row.cells[1].innerText, name: row.cells[2].innerText, type: GetRouteTypeForStorage(row.cells[3].innerText)};
-// }
-
-let UpdateRouteTable = (topoData) => {
-  var routeTable=document.getElementById("route-table-body");
-  routeTable.innerHTML = '';
-  if( topoData.routes != undefined ) {
-    topoData.routes.forEach(route => {
-      var row = CreateRowFromObject(route);
-      routeTable.appendChild(row).onclick = event => {
-        if( event != undefined ) {
-          const checkBox = event.currentTarget.cells[0].children[0];
-          checkBox.checked = !checkBox.checked;
-        }
-      };
-    });
-  }
-}
-
 let GetRouteById = (topoData, id) => {
   for( let route of topoData.routes ) {
     if( route.id == id ) return route;
@@ -72,17 +41,38 @@ let GetRouteById = (topoData, id) => {
   return null;
 }
 
-let GetSelectedRoute = (topoData) => {
-  const table = document.getElementById('route-table');
-  for (let row of table.rows) {
-    const checkBox = row.cells[0].children[0];
-    if( checkBox != undefined ) {
-      if( checkBox.checked ) {
-        return GetRouteById(topoData, row.cells[1].innerText);
-      }
+let GetPreviousRoute = (topoData, route) => {
+  if( route == null ) return null;
+  let previousRoute = null;
+  topoData.routes.reduce((previous, current) => {
+    if( current.id == route.id ) previousRoute = previous;
+    return current;
+  });
+  return previousRoute;
+}
+
+let GetNextRoute = (topoData, route) => {
+  if( route == null ) return null;
+  let nextRoute = null;
+  topoData.routes.reduce((previous, current) => {
+    if( previous.id == route.id ) nextRoute = current;
+    return current;
+  });
+  return nextRoute;
+}
+
+let SwapRoutes = (topoData, firstRoute, secondRoute) => {
+  if( firstRoute == null || secondRoute == null ) return;
+  topoData.routes = topoData.routes.map(route => {
+    switch (route.id) {
+      case firstRoute.id:
+        return secondRoute;
+      case secondRoute.id:
+        return firstRoute;
+      default:
+        return route;
     }
-  }
-  return null;
+  });
 }
 
 let UpdateRouteById = (topoData, newRoute) => {
@@ -97,22 +87,21 @@ let LoadPage = async (topoId) => {
   topoName.innerHTML = `${topoData.parent_data.parent_data.name} - ${topoData.parent_data.name} - ${topoData.name}`;
 
   UpdateRouteTable(topoData);
-  /*
-  base_image = await LoadImage(`data/image/${topoData.results.image_file}`);
-  const canvas=document.getElementById("topo-image");
-  const canvasPos = canvas.getBoundingClientRect();
-  canvas.width = canvasPos.width;
-  canvas.height = canvasPos.height / base_image.height * base_image.width;
-  drawRouteTable(topoData);
-  Resize();
   
-  window.addEventListener('resize', Resize, false);
-  AddMouseSupportToCanvas(base_image, canvas);
-  const routeTable = document.getElementById("route-table");
-  AddMouseSupportToTable(base_image, canvas, routeTable);
-*/
-  const addButton = document.getElementById('add-route');
-  addButton.onclick = () => {
+  // base_image = await LoadImage(`data/image/${topoData.results.image_file}`);
+  // const canvas=document.getElementById("topo-image");
+  // const canvasPos = canvas.getBoundingClientRect();
+  // canvas.width = canvasPos.width;
+  // canvas.height = canvasPos.height / base_image.height * base_image.width;
+  // drawRouteTable(topoData);
+  // Resize();
+  
+  // window.addEventListener('resize', Resize, false);
+  // AddMouseSupportToCanvas(base_image, canvas);
+  // const routeTable = document.getElementById("route-table");
+  // AddMouseSupportToTable(base_image, canvas, routeTable);
+
+  document.getElementById('add-route').onclick = () => {
     const route = {};
     EditRouteDialog(route, (newRoute) => {
       topoData.routes = (topoData.routes == undefined) ? [] : topoData.routes;
@@ -122,19 +111,35 @@ let LoadPage = async (topoId) => {
     });
   }
   
-  const editRouteButton = document.getElementById('edit-route');
-  editRouteButton.onclick = () => {
-    const route = GetSelectedRoute(topoData);
-    if( route != null ) {
-      EditRouteDialog(route, (newRoute) => {
-        UpdateRouteById(topoData, newRoute);
-        UpdateRouteTable(topoData);
-      });
-    }
+  document.getElementById('edit-route').onclick = () => {
+    const routes = GetSelectedRoutes(topoData);
+    if( routes.length != 1 ) return;
+    EditRouteDialog(routes[0], (newRoute) => {
+      UpdateRouteById(topoData, newRoute);
+      UpdateRouteTable(topoData);
+      //SetSelectedRoutes(routes);
+    });
   }
   
-  const saveButton = document.getElementById('save-changes');
-  saveButton.onclick = () => {
+  document.getElementById('move-route-up').onclick = () => {
+    const routes = GetSelectedRoutes(topoData);
+    if( routes.length != 1 ) return;
+    const previousRoute = GetPreviousRoute(topoData, routes[0]);
+    SwapRoutes(topoData, routes[0], previousRoute);
+    UpdateRouteTable(topoData);
+    //SetSelectedRoutes(routes);
+  }
+  
+  document.getElementById('move-route-down').onclick = () => {
+    const routes = GetSelectedRoutes(topoData);
+    if( routes.length != 1 ) return;
+    const nextRoute = GetNextRoute(topoData, routes[0]);
+    SwapRoutes(topoData, routes[0], nextRoute);
+    UpdateRouteTable(topoData);
+    //SetSelectedRoutes(routes);
+  }
+  
+  document.getElementById('save-changes').onclick = () => {
     delete topoData.parent_data;
     UpdateTopoData(topoData);
   }

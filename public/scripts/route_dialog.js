@@ -60,7 +60,7 @@ let GetGradeSelection = (system) => {
         {key: '6c', value: 'F6c'},
         {key: '6c+', value: 'F6c+'},
         {key: '7a', value: 'F7a'},
-        {key: '7a+', value: 'F7a'},
+        {key: '7a+', value: 'F7a+'},
         {key: '7b', value: 'F7b'},
         {key: '7b+', value: 'F7b'},
         {key: '7c', value: 'F7c'},
