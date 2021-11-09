@@ -128,15 +128,28 @@ let GetRouteTypeStorageObject = () => GetStoredValueFromDisplayValue(GetRouteTyp
 let GetGradeSelectionObject = (system) => GetDisplayValueFromStoredValue(GetGradeSelection(system));
 let GetAdditionalGradeSelectionObject = (system) => GetDisplayValueFromStoredValue(GetAdditionalGradeSelection(system));
 
-let GetRouteTypeForDisplay = (storageValue) => GetRouteTypeDisplayObject()[storageValue];
+let GetRouteTypeForDisplay = (storageValue) => {
+  const displayValue = GetRouteTypeDisplayObject()[storageValue];
+  return (displayValue == null ) ? '' : displayValue;
+}
+
+let GetGradeForDisplay = grade => {
+  const displayValue = GetGradeSelectionObject(grade.system)[grade.value];
+  return (displayValue == null) ? '' : displayValue;
+}
+
+let GetAdditionalGradeForDisplay = grade => {
+  const displayValue = GetAdditionalGradeSelectionObject(grade.system)[grade.additional_value];
+  return (displayValue == null) ? '' : displayValue;
+}
+
 let GetRouteTypeForStorage = (displayValue) => GetRouteTypeStorageObject()[displayValue];
 
-let GetDisplayGrade = (grade) => {
-  if( grade == undefined ) return '';
-  const gradeSelection = GetGradeSelectionObject(grade.system);
-  const additionalGradeSelection = GetAdditionalGradeSelectionObject(grade.system);
-  return (additionalGradeSelection[grade.additional_value] == undefined ) ? 
-  gradeSelection[grade.value] : `${gradeSelection[grade.value]} ${additionalGradeSelection[grade.additional_value]}`;
+let GetFullGradeForDisplay = (grade) => {
+  if( grade == null ) return '';
+  const gradeForDisplay = GetGradeForDisplay(grade);
+  const additionalGradeForDisplay = GetAdditionalGradeForDisplay(grade);
+  return (additionalGradeForDisplay.length == 0) ? gradeForDisplay : `${gradeForDisplay} ${additionalGradeForDisplay}`;
 }
 
 let GetRouteGradeValue = (system) => {

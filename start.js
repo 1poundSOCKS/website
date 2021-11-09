@@ -90,6 +90,7 @@ let ReadCragIntoResult = (cragId, res) => ReadFullObjectIntoResult("crags", crag
 let ReadTopoIntoResult = (topoId, res) => ReadFullObjectIntoResult("topos", topoId, res);
 let ReadCragsIntoResult = (guideId, res) => ReadFilteredCollectionIntoResult("crags", CollectionFilter.ParentId, guideId, res);
 let ReadToposIntoResult = (cragId, res) => ReadFilteredCollectionIntoResult("topos", CollectionFilter.ParentId, cragId, res);
+
 let UpdateTopo = async (data, res) => {
     try {
         console.log(JSON.stringify(data));
