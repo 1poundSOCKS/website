@@ -13,18 +13,19 @@
         <button class="topo-command-button" type="button" id="move-route-up">Up</button>
         <button class="topo-command-button" type="button" id="move-route-down">Down</button>
         <button class="topo-command-button" type="button" id="delete-routes">Delete</button>
+        <button class="topo-command-button" type="button" id="upload-image">Upload</button>
         <button class="topo-command-button" type="button" id="save-changes">Save</button>
     </div>
       <div class="flex-container">
-          <div style="width: 40%">
+          <div style="width: 50%">
               <table class="route-table" id="route-table">
                   <thead>
                       <tr>
-                          <th class="route-checkbox-header"></th>
-                          <th>Id</th>
-                          <th>Name</th>
-                          <th>Type</th>
-                          <th>Grade</th>
+                        <th class="route-checkbox-header"></th>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Grade</th>
                       </tr>
                   </thead>
                   <tbody id="route-table-body"></tbody>
@@ -47,6 +48,20 @@
             <button value="cancel">Cancel</button>
             <button value="confirm">Confirm</button>
           </menu>
+        </form>
+      </dialog>
+      <dialog id="upload-image-dialog">
+        <form method="POST" action="/upload-profile-pic" enctype="multipart/form-data">
+          <div>
+            <input type="file" name="profile_pic" id="file-input"/>
+          </div>
+          <menu>
+            <button value="cancel">Cancel</button>
+            <button value="confirm">Confirm</button>
+          </menu>
+          <!-- <div>
+            <input type="submit" name="btn_upload_profile_pic" value="Upload" />
+          </div> -->
         </form>
       </dialog>
       <script src="scripts/topo_functions.js"></script>
