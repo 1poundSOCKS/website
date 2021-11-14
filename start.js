@@ -1,5 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+const multer = require('multer');
+var upload = multer({dest:'uploads/'});
 const path = require('path');
 const fs = require('fs-extra');
 global.TextEncoder = require("util").TextEncoder;
@@ -11,6 +13,26 @@ var app = express();
 
 app.use(express.static(path.join(__dirname, "/public")));
 app.use(bodyParser.json());
+
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, 'uploads/');
+    },
+
+    // By default, multer removes file extensions so let's add them back
+    filename: function(req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+
+const imageFilter = function(req, file, cb) {
+    // Accept images only
+    if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF)$/)) {
+        req.fileValidationError = 'Only image files are allowed!';
+        return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+};
 
 app.get('/', (req, res) => {
     res.sendFile('./home.html', { root: __dirname });
@@ -71,6 +93,35 @@ app.get('/data/crag', (req, res) => {
 app.get('/data/guide', (req, res) => {
     console.log(`fetch guide data (guide_id='${req.query.guide_id}')`);
     ReadGuideIntoResult(req.query.guide_id, res);
+});
+
+app.post('/upload-profile-pic', upload.single('profile_pic'), (req, res) => {
+    // 'profile_pic' is the name of our file input field in the HTML form
+    let upload = multer({ storage: storage, fileFilter: imageFilter }).single('profile_pic');
+
+    upload(req, res, function(err) {
+        // req.file contains information of uploaded file
+        // req.body contains information of text fields, if there were any
+
+        console.log(`Filename: ${JSON.stringify(req.file)}`);
+        //console.log(JSON.stringify(req));
+
+        if (req.fileValidationError) {
+            return res.send(req.fileValidationError);
+        }
+        else if (!req.file) {
+            return res.send('Please select an image to upload');
+        }
+        else if (err instanceof multer.MulterError) {
+            return res.send(err);
+        }
+        else if (err) {
+            return res.send(err);
+        }
+
+        // Display uploaded image for user validation
+        res.send(`You have uploaded this image: <hr/><img src="${req.file.path}" width="500"><hr /><a href="./">Upload another image</a>`);
+    });
 });
 
 app.listen(8080);

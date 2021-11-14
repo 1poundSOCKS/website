@@ -28,10 +28,40 @@ let UpdateTopoData = async (topoData) => {
   return response.json();
 }
 
-function Resize() {
+let Resize = () => {
   var canvas=document.getElementById("topo-image");
   drawTopoImage(base_image, canvas);
   drawTopoRoutes(base_image, canvas);
+}
+
+let UploadImage = topoData => {
+  //let dialogDoc = new Document();
+  //const htmlElement = dialogDoc.createElement('html');
+  //const root = dialogDoc.appendChild(htmlElement);
+  //const root = dialogDoc.getRootNode();
+  //root.innerHTML = `<body>
+  // <dialog id="upload-image-dialog">
+  // <form method="dialog">
+  // </form>
+  // </dialog>
+  // </body>`;
+  const dialog = document.getElementById('upload-image-dialog');
+  dialog.onclose = (event) => {
+    const rv = dialog.returnValue;
+    if( rv == 'confirm' ) {
+      var input = document.querySelector('input[type="file"]')
+
+      var data = new FormData()
+      data.append('file', input.files[0])
+      data.append('user', 'hubot')
+      
+      fetch('/avatars', {
+        method: 'POST',
+        body: data
+      })
+    }
+  }
+  dialog.showModal();
 }
 
 let LoadPage = async (topoId) => {
@@ -78,6 +108,10 @@ let LoadPage = async (topoId) => {
   
   document.getElementById('delete-routes').onclick = () => {
     DeleteSelectedRoutes(topoData);
+  }
+  
+  document.getElementById('upload-image').onclick = () => {
+    UploadImage(topoData);
   }
   
   document.getElementById('save-changes').onclick = () => {
