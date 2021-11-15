@@ -95,32 +95,29 @@ app.get('/data/guide', (req, res) => {
     ReadGuideIntoResult(req.query.guide_id, res);
 });
 
-app.post('/upload-profile-pic', upload.single('profile_pic'), (req, res) => {
-    // 'profile_pic' is the name of our file input field in the HTML form
-    let upload = multer({ storage: storage, fileFilter: imageFilter }).single('profile_pic');
+app.post('/upload-topo-image', upload.any(), (req, res) => {
+    console.log(`Body: ${JSON.stringify(req.body)}`);
+    console.log(`Top image upload request: ${JSON.stringify(req.files[0])}`);
+    if (req.fileValidationError) {
+        const response = {result: 'error', value: req.fileValidationError};
+        return res.send(JSON.stringify(response));
+    }
+    else if (!req.files) {
+        const response = {result: 'error', value: 'no images selected'};
+        return res.send(JSON.stringify(response));
+    }
+    // else if (err instanceof multer.MulterError) {
+    //     const response = {result: 'error', value: err};
+    //     return res.send(JSON.stringify(response));
+    // }
+    // else if (err) {
+    //     const response = {result: 'error', value: err};
+    //     return res.send(JSON.stringify(response));
+    // }
 
-    upload(req, res, function(err) {
-        // req.file contains information of uploaded file
-        // req.body contains information of text fields, if there were any
-
-        console.log(`Filename: ${JSON.stringify(req.file)}`);
-        //console.log(JSON.stringify(req));
-
-        if (req.fileValidationError) {
-            return res.send(req.fileValidationError);
-        }
-        else if (!req.file) {
-            return res.send('Please select an image to upload');
-        }
-        else if (err instanceof multer.MulterError) {
-            return res.send(err);
-        }
-        else if (err) {
-            return res.send(err);
-        }
-
-        // Display uploaded image for user validation
-        res.send(`You have uploaded this image: <hr/><img src="${req.file.path}" width="500"><hr /><a href="./">Upload another image</a>`);
+    MoveImageFile(req.files[0].path, req.body.id).then(result => {
+        const response = {result: 'success'};
+        return res.send(JSON.stringify(response));
     });
 });
 
@@ -256,3 +253,10 @@ let ReadFilteredCollection = async (collectionName, filterBy, valueToKeep) => {
 }
 
 let OpenConnection = () => MongoClient.connect("mongodb://localhost:27017");
+
+let MoveImageFile = async (srcFilename, destFilename) => {
+    const currentPath = path.join(__dirname, srcFilename);
+    const destinationPath = path.join(__dirname, "public", "data", "image", destFilename);
+    console.log(`Renaming ${currentPath} to ${destinationPath}`);
+    return fs.rename(currentPath, destinationPath);
+}
