@@ -51,17 +51,14 @@
         </form>
       </dialog>
       <dialog id="upload-image-dialog">
-        <form method="POST" action="/upload-profile-pic" enctype="multipart/form-data">
+        <form method="dialog">
           <div>
-            <input type="file" name="profile_pic" id="file-input"/>
+            <input type="file" name="topo-image" id="topo-image-file"/>
           </div>
           <menu>
             <button value="cancel">Cancel</button>
             <button value="confirm">Confirm</button>
           </menu>
-          <!-- <div>
-            <input type="submit" name="btn_upload_profile_pic" value="Upload" />
-          </div> -->
         </form>
       </dialog>
       <script src="scripts/topo_functions.js"></script>
