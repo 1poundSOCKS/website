@@ -252,7 +252,7 @@ function drawRouteTable(topoData) {
   }
 }
 
-function drawTopoImage(image, canvas) {
+function DrawTopoImage(image, canvas) {
   var ctx=canvas.getContext("2d");
   ctx.width = canvas.width;
   ctx.height = canvas.height;

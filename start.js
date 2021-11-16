@@ -8,6 +8,7 @@ global.TextEncoder = require("util").TextEncoder;
 global.TextDecoder = require("util").TextDecoder;
 var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectId;
+const { copyFile } = require('fs');
 
 var app = express();
 
@@ -115,8 +116,9 @@ app.post('/upload-topo-image', upload.any(), (req, res) => {
     //     return res.send(JSON.stringify(response));
     // }
 
-    MoveImageFile(req.files[0].path, req.body.id).then(result => {
-        const response = {result: 'success'};
+    InstallImageFile(req.files[0], req.body.id)
+    .then(installedFilename => {
+        const response = {result: 'success', filename: installedFilename};
         return res.send(JSON.stringify(response));
     });
 });
@@ -254,9 +256,11 @@ let ReadFilteredCollection = async (collectionName, filterBy, valueToKeep) => {
 
 let OpenConnection = () => MongoClient.connect("mongodb://localhost:27017");
 
-let MoveImageFile = async (srcFilename, destFilename) => {
-    const currentPath = path.join(__dirname, srcFilename);
-    const destinationPath = path.join(__dirname, "public", "data", "image", destFilename);
-    console.log(`Renaming ${currentPath} to ${destinationPath}`);
-    return fs.rename(currentPath, destinationPath);
+let InstallImageFile = async (file, id) => {
+    const currentPath = path.join(__dirname, file.path);
+    const installedFilename = `${id}${path.extname(file.originalname)}`;
+    const destinationPath = path.join(__dirname, "public", "data", "image", installedFilename);
+    console.log(`Installing topo image file ${currentPath} to ${destinationPath}`);
+    await fs.rename(currentPath, destinationPath);
+    return installedFilename;
 }

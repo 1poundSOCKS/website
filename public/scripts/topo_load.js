@@ -15,6 +15,16 @@ let LoadTopoData = async (topoId) => {
   return data.results;
 }
 
+let LoadAndDisplayImage = async topoData => {
+  if( !topoData.image_file ) return;
+  base_image = await LoadImage(`data/image/${topoData.image_file}`);
+  const canvas=document.getElementById("topo-image");
+  const canvasPos = canvas.getBoundingClientRect();
+  canvas.width = canvasPos.width;
+  canvas.height = canvasPos.height / base_image.height * base_image.width;
+  DrawTopoImage(base_image, canvas);
+}
+
 let UpdateTopoData = async (topoData) => {
   const response = await fetch('/data/update_topo', {
     method: 'post',
@@ -48,7 +58,11 @@ let UploadImage = topoData => {
         body: formData
       })
       .then(response => response.json())
-      .then(data => console.log(`data=${JSON.stringify(data)}`))
+      .then(data => {
+        console.log(`data=${JSON.stringify(data)}`)
+        topoData.image_file = data.filename;
+        LoadAndDisplayImage(topoData);
+      })
       .catch(e => console.log(`exception: ${e.message}`));
     }
   }
@@ -61,6 +75,7 @@ let LoadPage = async (topoId) => {
   topoName.innerHTML = `${topoData.parent_data.parent_data.name} - ${topoData.parent_data.name} - ${topoData.name}`;
 
   UpdateRouteTable(topoData);
+  LoadAndDisplayImage(topoData);
   
   // base_image = await LoadImage(`data/image/${topoData.results.image_file}`);
   // const canvas=document.getElementById("topo-image");
