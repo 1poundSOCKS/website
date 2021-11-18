@@ -15,14 +15,18 @@ let LoadTopoData = async (topoId) => {
   return data.results;
 }
 
-let LoadAndDisplayImage = async topoData => {
-  if( !topoData.image_file ) return;
-  base_image = await LoadImage(`data/image/${topoData.image_file}`);
+let DrawImage = () => {
   const canvas=document.getElementById("topo-image");
   const canvasPos = canvas.getBoundingClientRect();
   canvas.width = canvasPos.width;
-  canvas.height = canvasPos.height / base_image.height * base_image.width;
+  canvas.height = canvas.width * base_image.height / base_image.width;
   DrawTopoImage(base_image, canvas);
+}
+
+let LoadAndDisplayImage = async topoData => {
+  if( !topoData.image_file ) return;
+  base_image = await LoadImage(`data/image/${topoData.image_file}`);
+  DrawImage();
 }
 
 let UpdateTopoData = async (topoData) => {
@@ -39,9 +43,7 @@ let UpdateTopoData = async (topoData) => {
 }
 
 let Resize = () => {
-  var canvas=document.getElementById("topo-image");
-  drawTopoImage(base_image, canvas);
-  drawTopoRoutes(base_image, canvas);
+  DrawImage();
 }
 
 let UploadImage = topoData => {
@@ -77,18 +79,7 @@ let LoadPage = async (topoId) => {
   UpdateRouteTable(topoData);
   LoadAndDisplayImage(topoData);
   
-  // base_image = await LoadImage(`data/image/${topoData.results.image_file}`);
-  // const canvas=document.getElementById("topo-image");
-  // const canvasPos = canvas.getBoundingClientRect();
-  // canvas.width = canvasPos.width;
-  // canvas.height = canvasPos.height / base_image.height * base_image.width;
-  // drawRouteTable(topoData);
-  // Resize();
-  
-  // window.addEventListener('resize', Resize, false);
-  // AddMouseSupportToCanvas(base_image, canvas);
-  // const routeTable = document.getElementById("route-table");
-  // AddMouseSupportToTable(base_image, canvas, routeTable);
+  window.addEventListener('resize', Resize, false);
 
   document.getElementById('add-route').onclick = () => {
     const route = {};

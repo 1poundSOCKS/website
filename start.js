@@ -1,7 +1,6 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 const multer = require('multer');
-var upload = multer({dest:'uploads/'});
 const path = require('path');
 const fs = require('fs-extra');
 global.TextEncoder = require("util").TextEncoder;
@@ -20,20 +19,20 @@ const storage = multer.diskStorage({
         cb(null, 'uploads/');
     },
 
-    // By default, multer removes file extensions so let's add them back
     filename: function(req, file, cb) {
         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
     }
 });
 
 const imageFilter = function(req, file, cb) {
-    // Accept images only
     if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF)$/)) {
         req.fileValidationError = 'Only image files are allowed!';
         return cb(new Error('Only image files are allowed!'), false);
     }
     cb(null, true);
 };
+
+var upload = multer({ storage: storage });
 
 app.get('/', (req, res) => {
     res.sendFile('./home.html', { root: __dirname });
@@ -104,9 +103,15 @@ app.post('/upload-topo-image', upload.any(), (req, res) => {
         return res.send(JSON.stringify(response));
     }
     else if (!req.files) {
-        const response = {result: 'error', value: 'no images selected'};
+        const response = {result: 'error', value: 'no files selected'};
         return res.send(JSON.stringify(response));
     }
+    const topoImageFiles = req.files.filter(file => file.fieldname == 'topo-image');
+    if( topoImageFiles.length == 0 ) {
+        const response = {result: 'error', value: 'no topo image file selected'};
+        return res.send(JSON.stringify(response));
+    }
+    const topoImageFile = topoImageFiles[0];
     // else if (err instanceof multer.MulterError) {
     //     const response = {result: 'error', value: err};
     //     return res.send(JSON.stringify(response));
@@ -116,7 +121,7 @@ app.post('/upload-topo-image', upload.any(), (req, res) => {
     //     return res.send(JSON.stringify(response));
     // }
 
-    InstallImageFile(req.files[0], req.body.id)
+    InstallImageFile(topoImageFile, req.body.id)
     .then(installedFilename => {
         const response = {result: 'success', filename: installedFilename};
         return res.send(JSON.stringify(response));
@@ -258,9 +263,9 @@ let OpenConnection = () => MongoClient.connect("mongodb://localhost:27017");
 
 let InstallImageFile = async (file, id) => {
     const currentPath = path.join(__dirname, file.path);
-    const installedFilename = `${id}${path.extname(file.originalname)}`;
-    const destinationPath = path.join(__dirname, "public", "data", "image", installedFilename);
-    console.log(`Installing topo image file ${currentPath} to ${destinationPath}`);
-    await fs.rename(currentPath, destinationPath);
+    const installedFilename = file.filename;
+    const installedPath = path.join(__dirname, "public", "data", "image", installedFilename);
+    console.log(`Installing topo image file ${currentPath} to ${installedPath}`);
+    await fs.rename(currentPath, installedPath);
     return installedFilename;
 }
