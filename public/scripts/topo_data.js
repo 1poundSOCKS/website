@@ -1,3 +1,26 @@
+//
+// topo data access functions
+//
+
+let LoadTopoData = async (topoId) => {
+  const response = await fetch(`/data/topo?topo_id=${topoId}`);
+  const data = await response.json();
+  return data.results;
+}
+
+let UpdateTopoData = async (topoData) => {
+  const response = await fetch('/data/update_topo', {
+    method: 'post',
+    headers: {
+      'Accept': 'application/json, text/plain, */*',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(topoData)
+  });
+
+  return response.json();
+}
+
 let GetRouteById = (topoData, id) => {
   for( let route of topoData.routes ) {
     if( route.id == id ) return route;

@@ -2,48 +2,8 @@
 // page load
 //
 
-let LoadImage = (url) => new Promise( (resolve, reject) => {
-  const img = new Image();
-  img.onload = () => resolve(img);
-  img.onerror = (err) => reject(err);
-  img.src = url;
-});
-
-let LoadTopoData = async (topoId) => {
-  const response = await fetch(`/data/topo?topo_id=${topoId}`);
-  const data = await response.json();
-  return data.results;
-}
-
-let DrawImage = () => {
-  const canvas=document.getElementById("topo-image");
-  const canvasPos = canvas.getBoundingClientRect();
-  canvas.width = canvasPos.width;
-  canvas.height = canvas.width * base_image.height / base_image.width;
-  DrawTopoImage(base_image, canvas);
-}
-
-let LoadAndDisplayImage = async topoData => {
-  if( !topoData.image_file ) return;
-  base_image = await LoadImage(`data/image/${topoData.image_file}`);
-  DrawImage();
-}
-
-let UpdateTopoData = async (topoData) => {
-  const response = await fetch('/data/update_topo', {
-    method: 'post',
-    headers: {
-      'Accept': 'application/json, text/plain, */*',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(topoData)
-  });
-
-  return response.json();
-}
-
 let Resize = () => {
-  DrawImage();
+  DrawImage(topoData);
 }
 
 let UploadImage = topoData => {
@@ -72,7 +32,7 @@ let UploadImage = topoData => {
 }
 
 let LoadPage = async (topoId) => {
-  const topoData = await LoadTopoData(topoId);
+  topoData = await LoadTopoData(topoId);
   const topoName=document.getElementById('topo-name');
   topoName.innerHTML = `${topoData.parent_data.parent_data.name} - ${topoData.parent_data.name} - ${topoData.name}`;
 
@@ -117,8 +77,7 @@ let LoadPage = async (topoId) => {
   }
 }
 
-var topoData;
-var base_image;
+let topoData = null;
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
