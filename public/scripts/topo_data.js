@@ -21,8 +21,8 @@ let UpdateTopoData = async (topoData) => {
   return response.json();
 }
 
-let GetRouteById = (topoData, id) => {
-  for( let route of topoData.routes ) {
+let GetRouteById = (routes, id) => {
+  for( let route of routes ) {
     if( route.id == id ) return route;
   }
   return null;

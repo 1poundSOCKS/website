@@ -14,6 +14,8 @@
 
 let imageState = { 
   image: null,
+  topoData: null,
+  canvas: null,
   mouseUpPos: null, 
   mouseDownPos: null, 
   transactions: []
@@ -29,96 +31,120 @@ let LoadImage = (url) => new Promise( (resolve, reject) => {
 let LoadAndDisplayImage = async topoData => {
   if( !topoData.image_file ) return;
   imageState.image = await LoadImage(`data/image/${topoData.image_file}`);
-  DrawImage(topoData);
-  const canvas=document.getElementById("topo-image");
-  AddMouseSupportToImage(imageState.image, canvas, topoData);
+  imageState.topoData = topoData;
+  imageState.canvas=document.getElementById("topo-image");
+  const canvasPos = imageState.canvas.getBoundingClientRect();
+  imageState.canvas.width = canvasPos.width;
+  imageState.canvas.height = imageState.canvas.width * imageState.image.height / imageState.image.width;
+  DrawImage(imageState);
+  AddMouseSupportToImage(imageState);
 }
 
-let DrawImage = (topoData) => {
-  const canvas=document.getElementById("topo-image");
-  const canvasPos = canvas.getBoundingClientRect();
-  canvas.width = canvasPos.width;
-  canvas.height = canvas.width * imageState.image.height / imageState.image.width;
-  var ctx=canvas.getContext("2d");
-  ctx.width = canvas.width;
-  ctx.height = canvas.height;
-  DrawTopoImage(ctx, imageState.image);
-  DrawTransactions(ctx, imageState.transactions);
-  if( imageState.mouseDownPos && imageState.currentMousePos ) {
-    const mouseDownCanvasPos = GetCanvasPosFromImagePos(imageState.image, canvas, imageState.mouseDownPos);
-    const currentCanvasPos = GetCanvasPosFromImagePos(imageState.image, canvas, imageState.currentMousePos);
-    DrawNewRouteLine(ctx, mouseDownCanvasPos, currentCanvasPos);
+let DrawImage = (state) => {
+  var ctx=state.canvas.getContext("2d");
+  ctx.width = state.canvas.width;
+  ctx.height = state.canvas.height;
+  ctx.drawImage(state.image, 0, 0, ctx.width, ctx.height);
+  DrawTopoLines(ctx, state);
+}
+
+let DrawTopoLines = (ctx, state) => {
+  DrawCurrentDragLine(ctx, state);
+}
+
+let DrawCurrentDragLine = (ctx, state) => {
+  if( state.mouseDownPos && state.currentMousePos ) {
+    DrawRouteLine(ctx, state.mouseDownPos, state.currentMousePos, state.image);
   }
 }
 
-function DrawNewRouteLine(ctx, startPos, endPos) {
+function DrawRouteLine(ctx, startPos, endPos, image) {
+  const ctxStartPos = GetContextPosFromImagePos(ctx, image, startPos);
+  const ctxEndPos = GetContextPosFromImagePos(ctx, image, endPos);
   ctx.strokeStyle = 'white';
   ctx.beginPath();
-  ctx.moveTo(startPos.x, startPos.y);
-  ctx.lineTo(endPos.x, endPos.y);
+  ctx.moveTo(ctxStartPos.x, ctxStartPos.y);
+  ctx.lineTo(ctxEndPos.x, ctxEndPos.y);
   ctx.lineWidth = 2;
   ctx.strokeStyle = '#FFFFFF';
   ctx.stroke();
 }
 
-function DrawTopoImage(ctx, image) {
-  ctx.drawImage(image, 0, 0, ctx.width, ctx.height);
-}
+let GetContextPosFromImagePos = (ctx, image, pos) => { return {x: pos.x * ctx.width / image.width, y: pos.y * ctx.height / image.height } };
 
-function DrawTransactions(ctx, transactions) {
-  for( const transaction of transactions ) {
-    const startPos = GetContextPosFromImagePos(imageState.image, ctx, transaction.start);
-    const endPos = GetContextPosFromImagePos(imageState.image, ctx, transaction.end);
-    DrawNewRouteLine(ctx, startPos, endPos);
+let ApplyTransactionsToRouteData = (state) => {
+  let routeData = Object.assign({}, state.topoData.routes);
+  for( let route of routeData ) {
+    
   }
+  return routeData;
 }
 
-function AddMouseSupportToImage(image, canvas, topoData) {
-  canvas.onmousedown = event => OnMouseDown(event, image, canvas, topoData);
-  canvas.onmousemove = event => OnMouseMove(event, image, canvas, topoData);
-  canvas.onmouseup = event => OnMouseUp(event, image, canvas, topoData);
-  canvas.onmouseenter = event => OnMouseEnter(event, image, canvas, topoData);
-  canvas.onmouseleave = event => OnMouseLeave(event, image, canvas, topoData);
-  canvas.onclick = event => OnClick(event, image, canvas, topoData);
+// function DrawTransactions(ctx, transactions) {
+//   for( const transaction of transactions ) {
+//     const startPos = GetContextPosFromImagePos(imageState.image, ctx, transaction.start);
+//     const endPos = GetContextPosFromImagePos(imageState.image, ctx, transaction.end);
+//     DrawNewRouteLine(ctx, startPos, endPos);
+//   }
+// }
+
+function AddMouseSupportToImage(state) {
+  state.canvas.onmousedown = event => OnMouseDown(event, state);
+  state.canvas.onmousemove = event => OnMouseMove(event, state);
+  state.canvas.onmouseup = event => OnMouseUp(event, state);
+  state.canvas.onmouseenter = event => OnMouseEnter(event, state);
+  state.canvas.onmouseleave = event => OnMouseLeave(event, state);
+  state.canvas.onclick = event => OnClick(event, state);
 }
 
-function OnMouseDown(event, image, canvas, topoData) {
+function OnMouseDown(event, state) {
   console.log(`mouse down`);
-  const selectedRoutes = GetSelectedRoutes(topoData);
+  const selectedRoutes = GetSelectedRoutes(state.topoData);
   if( selectedRoutes.length == 1 ) {
-    imageState.mouseDownPos = GetImageMousePos(event, image, canvas);
+    state.mouseDownPos = GetImageMousePos(event, state.image, state.canvas);
   }
 }
 
-function OnMouseMove(event, image, canvas, topoData) {
-  imageState.currentMousePos = GetImageMousePos(event, image, canvas);
-  if( imageState.mouseDownPos ) {
-    DrawImage(topoData);
+function OnMouseMove(event, state) {
+  state.currentMousePos = GetImageMousePos(event, state.image, state.canvas);
+  if( state.mouseDownPos ) {
+    DrawImage(state);
   }
 }
 
-function OnMouseUp(event, image, canvas, topoData) {
+function OnMouseUp(event, state) {
   console.log(`mouse up`);
-  imageState.mouseUpPos = GetImageMousePos(event, image, canvas);
-  if( imageState.mouseDownPos && imageState.mouseUpPos ) {
-    imageState.transactions.push({ action: 'add_line', start: imageState.mouseDownPos, end: imageState.mouseUpPos});
-    console.log(`${imageState.transactions.length}`);
+  state.mouseUpPos = GetImageMousePos(event, state.image, state.canvas);
+  if( state.mouseDownPos && state.mouseUpPos ) {
+    OnMouseDrag(state);
   }
-  imageState.mouseDownPos = null;
+  state.mouseDownPos = null;
 }
 
-function OnMouseEnter(event, image, canvas, topoData) {
+function OnMouseEnter(event, state) {
   console.log(`mouse enter`);
 }
 
-function OnMouseLeave(event, image, canvas, topoData) {
+function OnMouseLeave(event, state) {
   console.log(`mouse leave`);
   imageState.mouseDownPos = null;
-  DrawImage(topoData);
+  DrawImage(state);
 }
 
-function OnClick(event, image, canvas, topoData) {
+function OnClick(event, state) {
   console.log(`mouse click`);
+}
+
+function OnMouseDrag(state) {
+  const selectedRoutes = GetSelectedRoutes(state.topoData);
+  if( selectedRoutes.length == 1 ) {
+    state.transactions.push({
+      action: 'set_route_line', 
+      route: selectedRoutes[0], 
+      start: imageState.mouseDownPos, 
+      end: imageState.mouseUpPos
+    });
+  }
 }
 
 // function OnMouseMove(event, image, canvas, topoData) {
@@ -381,17 +407,12 @@ function ConvertImagePosDataToCanvasPosData(image, canvas, imagePosData) {
   return canvasPosData;
 }
 
-function GetCanvasPosFromImagePos(image, canvas, pos) {
-  var widthRatio = canvas.width / image.width;
-  var heightRatio = canvas.height / image.height;
-  return {x: pos.x * widthRatio, y: pos.y * heightRatio};
-}
 
-function GetContextPosFromImagePos(image, ctx, pos) {
-  var widthRatio = ctx.width / image.width;
-  var heightRatio = ctx.height / image.height;
-  return {x: pos.x * widthRatio, y: pos.y * heightRatio};
-}
+// function GetContextPosFromImagePos(image, ctx, pos) {
+//   var widthRatio = ctx.width / image.width;
+//   var heightRatio = ctx.height / image.height;
+//   return {x: pos.x * widthRatio, y: pos.y * heightRatio};
+// }
 
 function GetImagePosFromCanvasPos(image, canvas, pos) {
   var widthRatio = image.width / canvas.width;

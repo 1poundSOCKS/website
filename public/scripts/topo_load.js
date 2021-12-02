@@ -36,7 +36,7 @@ let LoadPage = async (topoId) => {
   const topoName=document.getElementById('topo-name');
   topoName.innerHTML = `${topoData.parent_data.parent_data.name} - ${topoData.parent_data.name} - ${topoData.name}`;
 
-  UpdateRouteTable(topoData);
+  UpdateRouteTable(topoData.routes);
   LoadAndDisplayImage(topoData);
   
   window.addEventListener('resize', Resize, false);
@@ -47,24 +47,30 @@ let LoadPage = async (topoId) => {
       topoData.routes = (topoData.routes == undefined) ? [] : topoData.routes;
       newRoute.id = topoData.routes.length + 1;
       topoData.routes.push(newRoute);
-      UpdateRouteTable(topoData);
+      UpdateRouteTable(topoData.routes);
     });
   }
   
   document.getElementById('edit-route').onclick = () => {
-    EditSelectedRoute(topoData);
+    const selectedRows = GetSelectedRows();
+    if( selectedRows.length != 1 ) return;
+    const selectedRoute = GetRouteById(topoData.routes, GetRowId(selectedRows[0]));
+    EditRouteDialog(selectedRoute, (newRoute) => {
+      UpdateRouteById(topoData, newRoute);
+      UpdateRouteTable(topoData.routes);
+    });
   }
   
   document.getElementById('move-route-up').onclick = () => {
-    MoveSelectedRouteUp(topoData);
+    MoveSelectedRouteUp();
   }
   
   document.getElementById('move-route-down').onclick = () => {
-    MoveSelectedRouteDown(topoData);
+    MoveSelectedRouteDown();
   }
   
   document.getElementById('delete-routes').onclick = () => {
-    DeleteSelectedRoutes(topoData);
+    DeleteSelectedRows();
   }
   
   document.getElementById('upload-image').onclick = () => {
