@@ -17,6 +17,10 @@ let UpdateRouteTable = (routes) => {
   });
 }
 
+let UpdateRow = (row, route) => {
+  row.innerHTML = GetRowHTML(route, row.rowIndex);
+}
+
 let MoveSelectedRouteUp = () => {
   ShiftSelectedRoutes(-1);
 }
@@ -32,7 +36,12 @@ let ShiftSelectedRoutes = (distance) => {
   rowsToMove.forEach( rowToMove => {
     SwapRows(rows, rowToMove.rowIndex - 1, rowToMove.rowIndex - 1 + distance);
   });
+  ReIndexTable();
   SelectRowsById(rowIds);
+}
+
+let ReIndexTable = () => {
+  GetRowsAsArray().forEach( row => UpdateRowIndex(row) );
 }
 
 let SwapRows = (rows, firstIndex, secondIndex) => {
@@ -58,17 +67,26 @@ let GetRouteTable = () => routeTable=document.getElementById("route-table");
 
 let CreateRowFromObject = (route, index) => {
   let row = document.createElement('tr');
-  row.innerHTML = 
-  `<td>${route.id}</td>
+  row.innerHTML = GetRowHTML(route, index);
+  return row;
+}
+
+let GetRowHTML = (route, index) => {
+  return `<td>${route.id}</td>
   <td><input id="route-checkbox" class="route-checkbox" type="checkbox"/></td>
   <td>${index}</td>
   <td>${route.name}</td>
   <td>${GetRouteTypeForDisplay(route.type)}</td>
   <td>${GetFullGradeForDisplay(route.grade)}</td>`;
-  return row;
 }
 
 let GetRowCheckBox = row => row.cells[1].children[0];
+
+let GetRowIndexCell = row => row.cells[2];
+
+let SetRowIndex = (row, index) => GetRowIndexCell(row).innerText = index;
+
+let UpdateRowIndex = row => SetRowIndex(row, row.rowIndex);
 
 let RowIsSelected = row => (GetRowCheckBox(row) != undefined) ? GetRowCheckBox(row).checked : false;
 

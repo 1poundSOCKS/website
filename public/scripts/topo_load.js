@@ -57,7 +57,7 @@ let LoadPage = async (topoId) => {
     const selectedRoute = GetRouteById(topoData.routes, GetRowId(selectedRows[0]));
     EditRouteDialog(selectedRoute, (newRoute) => {
       UpdateRouteById(topoData, newRoute);
-      UpdateRouteTable(topoData.routes);
+      UpdateRow(selectedRows[0], newRoute);
     });
   }
   

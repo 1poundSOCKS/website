@@ -18,6 +18,7 @@ let imageState = {
   canvas: null,
   mouseUpPos: null, 
   mouseDownPos: null, 
+  routeMap: new Map(),
   transactions: []
 };
 
@@ -99,10 +100,7 @@ function AddMouseSupportToImage(state) {
 
 function OnMouseDown(event, state) {
   console.log(`mouse down`);
-  const selectedRoutes = GetSelectedRoutes(state.topoData);
-  if( selectedRoutes.length == 1 ) {
-    state.mouseDownPos = GetImageMousePos(event, state.image, state.canvas);
-  }
+  state.mouseDownPos = GetImageMousePos(event, state.image, state.canvas);
 }
 
 function OnMouseMove(event, state) {
@@ -136,15 +134,14 @@ function OnClick(event, state) {
 }
 
 function OnMouseDrag(state) {
-  const selectedRoutes = GetSelectedRoutes(state.topoData);
+  const selectedRoutes = GetSelectedRowIds();
   if( selectedRoutes.length == 1 ) {
-    state.transactions.push({
-      action: 'set_route_line', 
-      route: selectedRoutes[0], 
-      start: imageState.mouseDownPos, 
-      end: imageState.mouseUpPos
-    });
+    SetRouteLine(selectedRoutes[0], state.mouseDownPos, state.mouseUpPos);
   }
+}
+
+let SetRouteLine = (state, id, startPos, endPos) => {
+  state.routeMap.set(id, {start: startPos, end: endPos});
 }
 
 // function OnMouseMove(event, image, canvas, topoData) {
