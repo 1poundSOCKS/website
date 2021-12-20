@@ -18,6 +18,7 @@ let imageState = {
   canvas: null,
   mouseUpPos: null, 
   mouseDownPos: null, 
+  points: [],
   routeMap: new Map(),
   transactions: []
 };
@@ -31,9 +32,9 @@ let LoadImage = (url) => new Promise( (resolve, reject) => {
 
 let LoadAndDisplayImage = async topoData => {
   if( !topoData.image_file ) return;
+  imageState.canvas=document.getElementById("topo-image");
   imageState.image = await LoadImage(`data/image/${topoData.image_file}`);
   imageState.topoData = topoData;
-  imageState.canvas=document.getElementById("topo-image");
   const canvasPos = imageState.canvas.getBoundingClientRect();
   imageState.canvas.width = canvasPos.width;
   imageState.canvas.height = imageState.canvas.width * imageState.image.height / imageState.image.width;
@@ -50,7 +51,12 @@ let DrawImage = (state) => {
 }
 
 let DrawTopoLines = (ctx, state) => {
-  DrawCurrentDragLine(ctx, state);
+  const selectedRows = GetSelectedRowIds();
+  if( selectedRows.length == 1 ) DrawCurrentDragLine(ctx, state);
+  state.routeMap.forEach(value => {
+    DrawRouteLine(ctx, value.start, value.end, state.image);
+    DrawRouteLabel(ctx, value.start, state);
+  });
 }
 
 let DrawCurrentDragLine = (ctx, state) => {
@@ -69,6 +75,18 @@ function DrawRouteLine(ctx, startPos, endPos, image) {
   ctx.lineWidth = 2;
   ctx.strokeStyle = '#FFFFFF';
   ctx.stroke();
+  ctx.fillStyle = '#FFFFFF';
+}
+
+let DrawRouteLabel = (ctx, pos, state) => {
+  ctx.font = "30px Arial";
+  const key = JSON.stringify(pos);
+  const value = state.routeMap.get(key);
+  if( !value ) return;
+  const label = value.route;
+  const labelMetrics = ctx.measureText(label);
+  const ctxPos = GetContextPosFromImagePos(ctx, state.image, pos);
+  ctx.fillText(label, ctxPos.x - (labelMetrics.width / 2), ctxPos.y + labelMetrics.actualBoundingBoxAscent);  
 }
 
 let GetContextPosFromImagePos = (ctx, image, pos) => { return {x: pos.x * ctx.width / image.width, y: pos.y * ctx.height / image.height } };
@@ -113,10 +131,6 @@ function OnMouseMove(event, state) {
 function OnMouseUp(event, state) {
   console.log(`mouse up`);
   state.mouseUpPos = GetImageMousePos(event, state.image, state.canvas);
-  if( state.mouseDownPos && state.mouseUpPos ) {
-    OnMouseDrag(state);
-  }
-  state.mouseDownPos = null;
 }
 
 function OnMouseEnter(event, state) {
@@ -131,17 +145,33 @@ function OnMouseLeave(event, state) {
 
 function OnClick(event, state) {
   console.log(`mouse click`);
+  if( state.mouseDownPos && state.mouseUpPos && !MousePosEqual(state.mouseDownPos, state.mouseUpPos) ) {
+    OnMouseDrag(state);
+  }
+  else {
+    OnMouseClick(state);
+  }
+  state.mouseDownPos = null;
 }
 
+let MousePosEqual = (pos1, pos2) => pos1.x == pos2.x && pos1.y == pos2.y;
+
 function OnMouseDrag(state) {
-  const selectedRoutes = GetSelectedRowIds();
-  if( selectedRoutes.length == 1 ) {
-    SetRouteLine(selectedRoutes[0], state.mouseDownPos, state.mouseUpPos);
+  console.log(`mouse click and drag`);
+  const selectedRows = GetSelectedRowIds();
+  if( selectedRows.length == 1 ) {
+    SetRouteLine(state, selectedRows[0], state.mouseDownPos, state.mouseUpPos);
   }
 }
 
+let OnMouseClick = state => {
+  console.log(`mouse click NO drag`);
+}
+
 let SetRouteLine = (state, id, startPos, endPos) => {
-  state.routeMap.set(id, {start: startPos, end: endPos});
+  console.log(`${state.routeMap}`)
+  const key = JSON.stringify(startPos);
+  state.routeMap.set(key, {route: id, start: startPos, end: endPos});
 }
 
 // function OnMouseMove(event, image, canvas, topoData) {
